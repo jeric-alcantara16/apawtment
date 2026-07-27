@@ -8,7 +8,8 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD || 'DqZHDkL55PlXyV3OX0Fh',
     database: process.env.DB_NAME || 'bxvl0imfammnkqd6ju3q',
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 5,
+    connectTimeout: 5000,
     dateStrings: true // keep DATETIME as 'YYYY-MM-DD HH:MM:SS' strings, not JS Date objects
 });
 
