@@ -8,8 +8,30 @@ const printSettingsRouter = require('./printsettings');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+    : [];
+
 app.use(cors({
-    origin: true
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        try {
+            const hostname = new URL(origin).hostname;
+            if (
+                hostname === 'localhost' ||
+                hostname === '127.0.0.1' ||
+                hostname.startsWith('192.168.') ||
+                hostname.startsWith('10.') ||
+                /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+            ) {
+                return callback(null, true);
+            }
+        } catch (e) {}
+        callback(new Error('Not allowed by CORS'));
+    }
 }));
 app.use(express.json());
 
