@@ -8,9 +8,8 @@ const printSettingsRouter = require('./printsettings');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 app.use(cors({
-    origin: allowedOrigins.length ? allowedOrigins : true
+    origin: true
 }));
 app.use(express.json());
 

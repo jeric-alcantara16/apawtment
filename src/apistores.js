@@ -6,7 +6,7 @@
  *
  * Set API_BASE_URL to wherever your Express server is running.
  */
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:4000/api`;
 
 class BugStore {
     static async getAll() {
@@ -61,9 +61,10 @@ class BugStore {
         if (!res.ok && res.status !== 204) throw new Error('Failed to delete test log');
     }
 
-    static async reset(seedData) {
-        // Reset just re-seeds via bulk-replace with seedData passed from app.js
-        return this.saveAll(seedData);
+    static async reset() {
+        const res = await fetch(`${API_BASE_URL}/test-logs/reset`, { method: 'POST' });
+        if (!res.ok) throw new Error('Failed to reset test logs');
+        return res.json();
     }
 }
 
