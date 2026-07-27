@@ -1231,12 +1231,13 @@ select:focus {
     }
 
     .col-id { width: 5%; font-weight: 700; text-align: center; }
+    .col-datetime { width: 11%; font-size: 7.5pt; text-align: center; }
     .col-mod { width: 10%; font-weight: 700; }
-    .col-scen { width: 16%; }
-    .col-steps { width: 20%; font-family: monospace; font-size: 7.5pt; }
-    .col-exp { width: 16%; }
-    .col-user { width: 12%; }
-    .col-status { width: 9%; text-align: center; }
+    .col-scen { width: 14%; }
+    .col-steps { width: 16%; font-family: monospace; font-size: 7pt; }
+    .col-exp { width: 14%; }
+    .col-user { width: 10%; }
+    .col-status { width: 8%; text-align: center; }
     .col-comments { width: 12%; font-style: italic; }
 
     .status-print-cell {

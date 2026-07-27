@@ -310,6 +310,7 @@ class App {
         this.btnTesterAdd = document.getElementById('btn-tester-add');
         this.testerAddModal = document.getElementById('tester-add-modal');
         this.testerAddForm = document.getElementById('tester-add-form');
+        this.testerDatetime = document.getElementById('tester-datetime');
         this.testerModule = document.getElementById('tester-module');
         this.testerScenario = document.getElementById('tester-scenario');
         this.testerSteps = document.getElementById('tester-steps');
@@ -544,9 +545,10 @@ class App {
             if (e.target === this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
         });
 
-        // Tester Single Add Modal Controls
+        // Tester-Only Single Add Modal Controls
         this.btnTesterAdd.addEventListener('click', () => {
             this.testerAddForm.reset();
+            this.testerDatetime.value = this.getLocalDateString();
             this.testerStatus.className = 'grid-select status-pass';
             
             // Remove error glow borders
@@ -594,6 +596,7 @@ class App {
             } else {
                 // Open the single add modal for testers
                 this.testerAddForm.reset();
+                this.testerDatetime.value = this.getLocalDateString();
                 this.testerStatus.className = 'grid-select status-pass';
                 
                 const row = this.testerAddModal.querySelector('.modal-row');
@@ -718,6 +721,7 @@ class App {
 
         tr.innerHTML = `
             <td class="tc-id-cell">${tcId}</td>
+            <td><input type="datetime-local" class="grid-input row-datetime" value="${log.datetime || this.getLocalDateString()}" required></td>
             <td><input type="text" class="grid-input row-module" value="${escapeHTML(log.module || '')}" placeholder="e.g. Auth, Payments" required></td>
             <td><input type="text" class="grid-input row-scenario" value="${escapeHTML(log.scenario || '')}" placeholder="Verify login behaves..." required></td>
             <td><textarea class="grid-textarea row-steps" placeholder="1. Go to page..." required>${escapeHTML(log.steps || '')}</textarea></td>
@@ -815,9 +819,7 @@ class App {
                     row.setAttribute('data-id', id);
                 }
 
-                // Preserve original datetime creation timestamp
-                const existingLog = this.logs.find(item => item.id === id);
-                const datetime = existingLog ? existingLog.datetime : this.getLocalDateString();
+                const datetime = row.querySelector('.row-datetime').value;
 
                 updatedLogs.push({
                     id,
@@ -921,8 +923,8 @@ class App {
         this.closePrintSettingsModal();
     }
 
-    // --- Tester Add Form Handler ---
     handleTesterAddSubmit() {
+        const datetime = this.testerDatetime.value;
         const module = this.testerModule.value.trim();
         const scenario = this.testerScenario.value.trim();
         const steps = this.testerSteps.value.trim();
@@ -933,7 +935,7 @@ class App {
 
         const row = this.testerAddModal.querySelector('.modal-row');
 
-        if (!module || !scenario || !steps || !expected) {
+        if (!datetime || !module || !scenario || !steps || !expected) {
             this.showToast("All fields (except comments) are required.", "error");
             if (row) {
                 row.style.outline = '1.5px solid var(--fail-color)';
@@ -949,7 +951,7 @@ class App {
 
         const newLog = {
             id: 'tc-' + Date.now(),
-            datetime: this.getLocalDateString(),
+            datetime,
             module,
             scenario,
             steps,
@@ -1023,6 +1025,7 @@ class App {
             bugRowsHTML += `
                 <tr>
                     <td class="col-id">${tcId}</td>
+                    <td class="col-datetime" style="white-space: nowrap;">${escapeHTML(String(log.datetime || '').replace('T', ' '))}</td>
                     <td class="col-mod">${escapeHTML(log.module)}</td>
                     <td class="col-scen">${escapeHTML(log.scenario)}</td>
                     <td class="col-steps">${escapeHTML(log.steps).replace(/\n/g, '<br>')}</td>
@@ -1103,6 +1106,7 @@ class App {
                     <thead>
                         <tr>
                             <th class="col-id">Test ID</th>
+                            <th class="col-datetime">Date & Time</th>
                             <th class="col-mod">Module/Form</th>
                             <th class="col-scen">Test Scenario</th>
                             <th class="col-steps">Test Steps</th>
@@ -1521,6 +1525,7 @@ class App {
 
                 tr.innerHTML = `
                     <td class="font-mono" style="font-weight:700; text-align:center;">${tcDisplayId}</td>
+                    <td style="font-size: 0.8rem; color: var(--text-secondary); text-align:center; white-space: nowrap;">${escapeHTML(String(log.datetime || '').replace('T', ' '))}</td>
                     <td class="col-module">${this.highlightText(log.module || '', searchQuery)}</td>
                     <td style="font-weight:500;">${this.highlightText(log.scenario || '', searchQuery)}</td>
                     <td>

@@ -238,13 +238,14 @@
                     <thead>
                         <tr>
                             <th style="width: 5%">Test ID</th>
-                            <th style="width: 11%">Module/Form</th>
-                            <th style="width: 18%">Test Scenario</th>
-                            <th style="width: 18%">Test Steps</th>
-                            <th style="width: 16%">Expected Result</th>
-                            <th style="width: 12%">User Role</th>
-                            <th style="width: 8%">Status</th>
-                            <th style="width: 12%">Comments / Bugs Found</th>
+                            <th style="width: 9%">Date & Time</th>
+                            <th style="width: 10%">Module/Form</th>
+                            <th style="width: 15%">Test Scenario</th>
+                            <th style="width: 15%">Test Steps</th>
+                            <th style="width: 14%">Expected Result</th>
+                            <th style="width: 10%">User Role</th>
+                            <th style="width: 7%">Status</th>
+                            <th style="width: 15%">Comments / Bugs Found</th>
                             <th style="width: 10%; text-align: right;">Actions</th>
                         </tr>
                     </thead>
@@ -306,13 +307,14 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%">TC ID</th>
-                                <th style="width: 12%">Module/Form</th>
-                                <th style="width: 20%">Test Scenario</th>
-                                <th style="width: 18%">Test Steps</th>
-                                <th style="width: 16%">Expected Result</th>
-                                <th style="width: 12%">User Role</th>
+                                <th style="width: 12%">Date & Time</th>
+                                <th style="width: 10%">Module/Form</th>
+                                <th style="width: 18%">Test Scenario</th>
+                                <th style="width: 16%">Test Steps</th>
+                                <th style="width: 14%">Expected Result</th>
+                                <th style="width: 10%">User Role</th>
                                 <th style="width: 7%">Status</th>
-                                <th style="width: 10%">Comments / Bugs Found</th>
+                                <th style="width: 8%">Comments / Bugs Found</th>
                                 <th style="width: 5%"></th>
                             </tr>
                         </thead>
@@ -401,17 +403,19 @@
                     <table class="modal-grid-table">
                         <thead>
                             <tr>
-                                <th style="width: 12%">Module/Form</th>
-                                <th style="width: 20%">Test Scenario</th>
-                                <th style="width: 18%">Test Steps</th>
-                                <th style="width: 16%">Expected Result</th>
-                                <th style="width: 12%">User Role</th>
+                                <th style="width: 12%">Date & Time</th>
+                                <th style="width: 10%">Module/Form</th>
+                                <th style="width: 18%">Test Scenario</th>
+                                <th style="width: 16%">Test Steps</th>
+                                <th style="width: 14%">Expected Result</th>
+                                <th style="width: 10%">User Role</th>
                                 <th style="width: 10%">Status</th>
-                                <th style="width: 12%">Comments / Bugs Found</th>
+                                <th style="width: 10%">Comments / Bugs Found</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr class="modal-row">
+                                <td><input type="datetime-local" id="tester-datetime" class="grid-input" required></td>
                                 <td><input type="text" id="tester-module" class="grid-input" placeholder="e.g. Profile screen" required list="modules-list"></td>
                                 <td><input type="text" id="tester-scenario" class="grid-input" placeholder="Verify profile update..." required></td>
                                 <td><textarea id="tester-steps" class="grid-textarea" placeholder="1. Tap profile picture..." required></textarea></td>
