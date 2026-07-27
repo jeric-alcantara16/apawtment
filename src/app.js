@@ -114,13 +114,14 @@ class App {
         try {
             this.logs = await BugStore.getAll();
             if (this.logs.length === 0) {
-                // Auto seed on first MySQL load to match original localStorage behavior
                 this.logs = await BugStore.reset();
             }
             this.printSettings = await PrintSettingsStore.get();
         } catch (err) {
-            console.error("Failed to load initial data from database:", err);
-            this.showToast(`Connection to database failed: ${err.message || err}`, "error");
+            // Silently fall back to empty state — no error shown to user
+            console.warn('Database unavailable, running with empty data:', err.message);
+            if (!this.logs) this.logs = [];
+            if (!this.printSettings) this.printSettings = null;
         }
 
         // Retrieve persistent admin login status
