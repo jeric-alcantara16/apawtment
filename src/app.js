@@ -826,52 +826,7 @@ class App {
                 <!-- University Banner Header -->
                 <header class="print-form-header">
                     <div class="print-logo-left">
-                        <svg class="print-svg-logo" viewBox="0 0 100 100" style="width: 50px; height: 50px;">
-                            <!-- Gold sun rays border -->
-                            <circle cx="50" cy="50" r="46" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
-                            <g stroke="#d97706" stroke-width="1.5">
-                                <line x1="50" y1="4" x2="50" y2="8" />
-                                <line x1="50" y1="96" x2="50" y2="92" />
-                                <line x1="4" y1="50" x2="8" y2="50" />
-                                <line x1="96" y1="50" x2="92" y2="50" />
-                                <line x1="17.5" y1="17.5" x2="20.5" y2="20.5" />
-                                <line x1="82.5" y1="82.5" x2="79.5" y2="79.5" />
-                                <line x1="17.5" y1="82.5" x2="20.5" y2="79.5" />
-                                <line x1="82.5" y1="17.5" x2="79.5" y2="20.5" />
-                                <line x1="31.2" y1="10.8" x2="33.2" y2="14.3" />
-                                <line x1="68.8" y1="89.2" x2="66.8" y2="85.7" />
-                                <line x1="68.8" y1="10.8" x2="66.8" y2="14.3" />
-                                <line x1="31.2" y1="89.2" x2="33.2" y2="85.7" />
-                                <line x1="10.8" y1="31.2" x2="14.3" y2="33.2" />
-                                <line x1="89.2" y1="68.8" x2="85.7" y2="66.8" />
-                                <line x1="89.2" y1="31.2" x2="85.7" y2="33.2" />
-                                <line x1="10.8" y1="68.8" x2="14.3" y2="66.8" />
-                            </g>
-                            <!-- Dark blue outer ring -->
-                            <circle cx="50" cy="50" r="41" fill="#1e3a8a" stroke="#d97706" stroke-width="1" />
-                            <!-- White text inside ring using textPath -->
-                            <path id="ucu-text-path-top" d="M 14 50 A 36 36 0 1 1 86 50" fill="none" stroke="none" />
-                            <path id="ucu-text-path-bottom" d="M 86 50 A 36 36 0 0 1 14 50" fill="none" stroke="none" />
-                            <text>
-                                <textPath href="#ucu-text-path-top" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="4.2" font-family="Outfit, sans-serif" font-weight="700">URDANETA CITY UNIVERSITY</textPath>
-                            </text>
-                            <text>
-                                <textPath href="#ucu-text-path-bottom" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="5" font-family="Outfit, sans-serif" font-weight="700">1966</textPath>
-                            </text>
-                            <!-- Inner gold circle -->
-                            <circle cx="50" cy="50" r="30" fill="#fef08a" stroke="#d97706" stroke-width="1" />
-                            <!-- Shield in center -->
-                            <path d="M 36 40 L 64 40 C 64 40 64 62 50 72 C 36 62 36 40 36 40 Z" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.5" />
-                            <!-- Red left, blue right divisions inside shield -->
-                            <path d="M 37 41 L 50 41 L 50 70.5 C 41 62.5 37.5 48 37 41 Z" fill="#b91c1c" />
-                            <path d="M 50 41 L 63 41 C 62.5 48 59 62.5 50 70.5 L 50 41 Z" fill="#1d4ed8" />
-                            <!-- Open Book inside the shield -->
-                            <path d="M 40 54 Q 45 52 50 56 Q 55 52 60 54 L 60 46 Q 55 44 50 48 Q 45 44 40 46 Z" fill="#ffffff" stroke="#000000" stroke-width="0.5" />
-                            <line x1="50" y1="48" x2="50" y2="56" stroke="#000000" stroke-width="0.5" />
-                            <!-- Torch handle & flame -->
-                            <rect x="49" y="52" width="2" height="8" fill="#eab308" />
-                            <path d="M 50 43 Q 48 48 50 51 Q 52 48 50 43 Z" fill="#f43f5e" />
-                        </svg>
+                        <img src="assets/ucu_logo.png" class="print-img-logo" alt="Urdaneta City University Logo">
                         <div class="print-logo-text-left">
                             <div class="txt-main-uni">URDANETA CITY</div>
                             <div class="txt-sub-uni">Owned and operated by the City Government of Urdaneta</div>
@@ -885,36 +840,7 @@ class App {
                             <div class="txt-college-sub">Technology</div>
                             <div class="txt-college-sub">Education</div>
                         </div>
-                        <svg class="print-svg-logo" viewBox="0 0 100 100" style="width: 50px; height: 50px;">
-                            <!-- Blue outer ring -->
-                            <circle cx="50" cy="50" r="45" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="2" />
-                            <!-- Inner white circle -->
-                            <circle cx="50" cy="50" r="37" fill="#ffffff" stroke="#1d4ed8" stroke-width="1" />
-                            <!-- Text CITE inside outer ring -->
-                            <path id="cite-text-path-top" d="M 12 50 A 38 38 0 1 1 88 50" fill="none" stroke="none" />
-                            <path id="cite-text-path-bottom" d="M 88 50 A 38 38 0 0 1 12 50" fill="none" stroke="none" />
-                            <text>
-                                <textPath href="#cite-text-path-top" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="4.2" font-family="Outfit, sans-serif" font-weight="700">COLLEGE OF INFORMATION & TECH. ED.</textPath>
-                            </text>
-                            <text>
-                                <textPath href="#cite-text-path-bottom" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="5" font-family="Outfit, sans-serif" font-weight="800">CITE</textPath>
-                            </text>
-                            <!-- Circuit board design in center -->
-                            <g fill="none" stroke="#1e3a8a" stroke-width="1.5">
-                                <rect x="42" y="42" width="16" height="16" rx="2" fill="#1e3a8a" stroke="none" />
-                                <rect x="45" y="45" width="10" height="10" rx="1" fill="#ffffff" stroke="none" />
-                                <path d="M 50 30 L 50 42 M 50 58 L 50 70 M 30 50 L 42 50 M 58 50 L 70 50" />
-                                <path d="M 36 36 L 44 44 M 64 64 L 56 56 M 36 64 L 44 56 M 64 36 L 56 44" />
-                                <circle cx="50" cy="30" r="2.5" fill="#1e3a8a" stroke="none" />
-                                <circle cx="50" cy="70" r="2.5" fill="#1e3a8a" stroke="none" />
-                                <circle cx="30" cy="50" r="2.5" fill="#1e3a8a" stroke="none" />
-                                <circle cx="70" cy="50" r="2.5" fill="#1e3a8a" stroke="none" />
-                                <circle cx="36" cy="36" r="2" fill="#1e3a8a" stroke="none" />
-                                <circle cx="64" cy="64" r="2" fill="#1e3a8a" stroke="none" />
-                                <circle cx="36" cy="64" r="2" fill="#1e3a8a" stroke="none" />
-                                <circle cx="64" cy="36" r="2" fill="#1e3a8a" stroke="none" />
-                            </g>
-                        </svg>
+                        <img src="assets/cite_logo.jpg" class="print-img-logo" alt="CITE Logo">
                     </div>
                 </header>
                 
