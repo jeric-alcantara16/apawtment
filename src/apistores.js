@@ -6,7 +6,7 @@
  *
  * Set API_BASE_URL to wherever your Express server is running.
  */
-const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:4000/api`;
+const API_BASE_URL = '/api';
 
 class BugStore {
     static async getAll() {
