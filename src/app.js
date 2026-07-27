@@ -1025,7 +1025,7 @@ class App {
             bugRowsHTML += `
                 <tr>
                     <td class="col-id">${tcId}</td>
-                    <td class="col-datetime" style="white-space: nowrap;">${escapeHTML(String(log.datetime || '').replace('T', ' '))}</td>
+                    <td class="col-datetime" style="white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
                     <td class="col-mod">${escapeHTML(log.module)}</td>
                     <td class="col-scen">${escapeHTML(log.scenario)}</td>
                     <td class="col-steps">${escapeHTML(log.steps).replace(/\n/g, '<br>')}</td>
@@ -1525,7 +1525,7 @@ class App {
 
                 tr.innerHTML = `
                     <td class="font-mono" style="font-weight:700; text-align:center;">${tcDisplayId}</td>
-                    <td style="font-size: 0.8rem; color: var(--text-secondary); text-align:center; white-space: nowrap;">${escapeHTML(String(log.datetime || '').replace('T', ' '))}</td>
+                    <td style="font-size: 0.8rem; color: var(--text-secondary); text-align:center; white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
                     <td class="col-module">${this.highlightText(log.module || '', searchQuery)}</td>
                     <td style="font-weight:500;">${this.highlightText(log.scenario || '', searchQuery)}</td>
                     <td>
@@ -1624,6 +1624,30 @@ function escapeHTML(str) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// --- Date & Time Formatter Helper (AM / PM format) ---
+function formatDateTime(isoStr) {
+    if (!isoStr) return '';
+    try {
+        const parts = isoStr.split('T');
+        if (parts.length < 2) return isoStr;
+        const datePart = parts[0];
+        const timePart = parts[1];
+        
+        const timeParts = timePart.split(':');
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = timeParts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // convert 0 to 12
+        
+        const hoursStr = String(hours).padStart(2, '0');
+        return `${datePart} ${hoursStr}:${minutes} ${ampm}`;
+    } catch (e) {
+        return isoStr;
+    }
 }
 
 // Instantiate application on window mount
