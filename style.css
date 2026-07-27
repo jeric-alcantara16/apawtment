@@ -6,12 +6,12 @@
 :root {
     --font-primary: 'Inter', sans-serif;
     --font-heading: 'Outfit', sans-serif;
-    
+
     /* Transitions */
     --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -28,25 +28,29 @@
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
     --border-color: rgba(148, 163, 184, 0.12);
-    
-    --primary-color: #06b6d4;      /* Neon Cyan */
+
+    --primary-color: #06b6d4;
+    /* Neon Cyan */
     --primary-hover: #0891b2;
     --primary-glow: rgba(6, 182, 212, 0.15);
-    
-    --pass-color: #10b981;         /* Emerald */
+
+    --pass-color: #10b981;
+    /* Emerald */
     --pass-hover: #059669;
     --pass-glow: rgba(16, 185, 129, 0.15);
-    
-    --fail-color: #f43f5e;         /* Rose */
+
+    --fail-color: #f43f5e;
+    /* Rose */
     --fail-hover: #e11d48;
     --fail-glow: rgba(244, 63, 94, 0.15);
-    
-    --warning-color: #f59e0b;      /* Amber */
+
+    --warning-color: #f59e0b;
+    /* Amber */
     --warning-glow: rgba(245, 158, 11, 0.15);
-    
+
     --overlay-color: rgba(7, 10, 20, 0.75);
     --card-hover-border: rgba(6, 182, 212, 0.3);
-    
+
     --table-row-hover: rgba(6, 182, 212, 0.03);
 }
 
@@ -59,25 +63,29 @@
     --text-secondary: #475569;
     --text-muted: #64748b;
     --border-color: rgba(71, 85, 105, 0.12);
-    
-    --primary-color: #0284c7;      /* Sky Blue */
+
+    --primary-color: #0284c7;
+    /* Sky Blue */
     --primary-hover: #0369a1;
     --primary-glow: rgba(2, 132, 199, 0.15);
-    
-    --pass-color: #059669;         /* Dark Emerald */
+
+    --pass-color: #059669;
+    /* Dark Emerald */
     --pass-hover: #047857;
     --pass-glow: rgba(5, 150, 105, 0.1);
-    
-    --fail-color: #e11d48;         /* Rose */
+
+    --fail-color: #e11d48;
+    /* Rose */
     --fail-hover: #be123c;
     --fail-glow: rgba(225, 29, 72, 0.1);
-    
-    --warning-color: #d97706;      /* Dark Amber */
+
+    --warning-color: #d97706;
+    /* Dark Amber */
     --warning-glow: rgba(217, 119, 6, 0.1);
-    
+
     --overlay-color: rgba(15, 23, 42, 0.4);
     --card-hover-border: rgba(2, 132, 199, 0.35);
-    
+
     --table-row-hover: rgba(2, 132, 199, 0.03);
 }
 
@@ -106,13 +114,16 @@ body {
     width: 8px;
     height: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: var(--bg-primary);
 }
+
 ::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
@@ -412,7 +423,7 @@ select:focus {
     flex-direction: column;
     gap: 0.2rem;
     transform-origin: top right;
-    transition: opacity var(--transition-normal) , transform var(--transition-normal);
+    transition: opacity var(--transition-normal), transform var(--transition-normal);
 }
 
 .dropdown-menu.hidden {
@@ -510,10 +521,21 @@ select:focus {
 }
 
 /* Theme Icons Visibility */
-.dark-theme .moon-icon { display: none; }
-.dark-theme .sun-icon { display: block; }
-.light-theme .sun-icon { display: none; }
-.light-theme .moon-icon { display: block; }
+.dark-theme .moon-icon {
+    display: none;
+}
+
+.dark-theme .sun-icon {
+    display: block;
+}
+
+.light-theme .sun-icon {
+    display: none;
+}
+
+.light-theme .moon-icon {
+    display: block;
+}
 
 /* Empty State Styling */
 .empty-state {
@@ -544,8 +566,17 @@ select:focus {
 }
 
 @keyframes svgPulse {
-    0%, 100% { opacity: 0.4; stroke-width: 1.5; }
-    50% { opacity: 0.8; stroke-width: 2.2; }
+
+    0%,
+    100% {
+        opacity: 0.4;
+        stroke-width: 1.5;
+    }
+
+    50% {
+        opacity: 0.8;
+        stroke-width: 2.2;
+    }
 }
 
 .empty-state h2 {
@@ -590,10 +621,17 @@ select:focus {
     table-layout: fixed;
 }
 
-.dashboard-table th, .dashboard-table td {
+/* All dashboard data cells share one consistent alignment baseline:
+   vertical-align middle so rows with tall/wrapped Test Steps text don't
+   look jagged next to short cells (Status, Actions, etc). Horizontal
+   alignment is then set per-column below (center for ID/Date/Status,
+   left for everything else, matching the modal editor and print form). */
+.dashboard-table th,
+.dashboard-table td {
     padding: 0.9rem 0.6rem;
     font-size: 0.85rem;
-    vertical-align: top;
+    vertical-align: middle;
+    text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -607,6 +645,18 @@ select:focus {
     letter-spacing: 0.75px;
     border-bottom: 2px solid var(--border-color);
     text-align: left;
+}
+
+/* Centered columns (Test ID, Date & Time, Status) — matches the
+   centered header cells and the centered inline cells in the modal
+   editor / print form for a consistent look across all three tables. */
+.dashboard-table th:nth-child(1),
+.dashboard-table td:nth-child(1),
+.dashboard-table th:nth-child(2),
+.dashboard-table td:nth-child(2),
+.dashboard-table th:nth-child(8),
+.dashboard-table td:nth-child(8) {
+    text-align: center;
 }
 
 .dashboard-table tbody tr {
@@ -728,6 +778,17 @@ select:focus {
     padding: 0.4rem 0.3rem;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
+    text-align: left;
+}
+
+/* Centered columns to match the dashboard table (TC ID, Date & Time, Status) */
+.modal-grid-table th:nth-child(1),
+.modal-grid-table td:nth-child(1),
+.modal-grid-table th:nth-child(2),
+.modal-grid-table td:nth-child(2),
+.modal-grid-table th:nth-child(8),
+.modal-grid-table td:nth-child(8) {
+    text-align: center;
 }
 
 .modal-grid-table tbody tr:hover {
@@ -742,7 +803,9 @@ select:focus {
 }
 
 /* Grid Inputs style overrides */
-.grid-input, .grid-textarea, .grid-select {
+.grid-input,
+.grid-textarea,
+.grid-select {
     background-color: transparent;
     border: 1px solid transparent;
     color: var(--text-primary);
@@ -752,6 +815,7 @@ select:focus {
     border-radius: 6px;
     width: 100%;
     outline: none;
+    text-align: left;
     transition: all var(--transition-fast);
 }
 
@@ -762,7 +826,9 @@ select:focus {
     line-height: 1.3;
 }
 
-.grid-input:focus, .grid-textarea:focus, .grid-select:focus {
+.grid-input:focus,
+.grid-textarea:focus,
+.grid-select:focus {
     background-color: var(--bg-primary);
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px var(--primary-glow);
@@ -774,6 +840,14 @@ select:focus {
     padding-right: 1.5rem;
     background-color: transparent;
     border: 1px solid transparent;
+    text-align: left;
+}
+
+/* Status select (PASS/FAIL) reads as a centered badge in both the
+   dashboard table and the modal editor, matching the print form. */
+select.row-status,
+select.dashboard-status-select {
+    text-align: center;
 }
 
 .grid-select.status-pass {
@@ -1019,13 +1093,29 @@ select:focus {
 }
 
 @keyframes toastIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @keyframes toastOut {
-    0%, 90% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(100%); opacity: 0; }
+
+    0%,
+    90% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }
 
 /* Footer Section */
@@ -1058,7 +1148,7 @@ select:focus {
         size: letter landscape;
         margin: 0.4in;
     }
-    
+
     body {
         background-color: #ffffff !important;
         color: #000000 !important;
@@ -1076,7 +1166,9 @@ select:focus {
         print-color-adjust: exact !important;
     }
 
-    .app-container, .modal-overlay, .toast-container {
+    .app-container,
+    .modal-overlay,
+    .toast-container {
         display: none !important;
     }
 
@@ -1154,7 +1246,7 @@ select:focus {
         color: #000000;
         line-height: 1;
     }
-    
+
     .print-logo-text-right .txt-college-sub {
         font-size: 9.5pt;
         font-weight: 700;
@@ -1186,6 +1278,7 @@ select:focus {
         padding: 6px 8px;
         vertical-align: top;
         font-size: 8.5pt;
+        text-align: left;
     }
 
     .print-meta-table .meta-label {
@@ -1193,14 +1286,16 @@ select:focus {
         width: 15%;
         background-color: #f3f4f6 !important;
         color: #000000;
+        text-align: left;
     }
 
     .print-meta-table .meta-val {
         width: 85%;
         font-weight: 500;
         color: #000000;
+        text-align: left;
     }
-    
+
     .print-meta-table .researchers-list {
         line-height: 1.4;
     }
@@ -1211,10 +1306,15 @@ select:focus {
         margin-bottom: 1.5rem;
     }
 
-    .print-data-table th, .print-data-table td {
+    /* Same baseline as the on-screen tables: vertical-align middle so
+       rows with long Test Steps / Expected Result / Comments text don't
+       throw off the shorter ID/Date/Status/User cells next to them. */
+    .print-data-table th,
+    .print-data-table td {
         border: 1.25px solid #000000;
         padding: 6px 8px;
-        vertical-align: top;
+        vertical-align: middle;
+        text-align: left;
         font-size: 8pt;
     }
 
@@ -1231,15 +1331,57 @@ select:focus {
         line-height: 1.3;
     }
 
-    .col-id { width: 5%; font-weight: 700; text-align: center; }
-    .col-datetime { width: 11%; font-size: 7.5pt; text-align: center; }
-    .col-mod { width: 10%; font-weight: 700; }
-    .col-scen { width: 14%; }
-    .col-steps { width: 16%; font-family: monospace; font-size: 7pt; }
-    .col-exp { width: 14%; }
-    .col-user { width: 10%; }
-    .col-status { width: 8%; text-align: center; }
-    .col-comments { width: 12%; font-style: italic; }
+    /* Centered columns to match the dashboard table and modal editor */
+    .print-data-table th.col-id,
+    .print-data-table td.col-id,
+    .print-data-table th.col-datetime,
+    .print-data-table td.col-datetime,
+    .print-data-table th.col-status,
+    .print-data-table td.col-status {
+        text-align: center;
+    }
+
+    .col-id {
+        width: 5%;
+        font-weight: 700;
+    }
+
+    .col-datetime {
+        width: 11%;
+        font-size: 7.5pt;
+    }
+
+    .col-mod {
+        width: 10%;
+        font-weight: 700;
+    }
+
+    .col-scen {
+        width: 14%;
+    }
+
+    .col-steps {
+        width: 16%;
+        font-family: monospace;
+        font-size: 7pt;
+    }
+
+    .col-exp {
+        width: 14%;
+    }
+
+    .col-user {
+        width: 10%;
+    }
+
+    .col-status {
+        width: 8%;
+    }
+
+    .col-comments {
+        width: 12%;
+        font-style: italic;
+    }
 
     .status-print-cell {
         display: flex;
@@ -1248,13 +1390,13 @@ select:focus {
         gap: 4px;
         font-weight: 700;
     }
-    
+
     .box-checked {
         font-size: 13pt;
         line-height: 1;
         color: #000000;
     }
-    
+
     .box-failed {
         font-size: 13pt;
         line-height: 1;
@@ -1374,4 +1516,3 @@ select:focus {
 .hidden {
     display: none !important;
 }
-
