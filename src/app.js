@@ -217,51 +217,40 @@ const DEFAULT_PRINT_SETTINGS = {
     checkedAdviser: "Anthony G. Marquez, LPT, MIT"
 };
 
-const API_BASE = 'api';
-
+// --- Local Storage Management Store ---
 class BugStore {
-    static async getAll() {
-        const res = await fetch(`${API_BASE}/logs.php`);
-        return res.json();
+    static STORAGE_KEY = 'apawtment_test_logs';
+
+    static getAll() {
+        let data = localStorage.getItem(this.STORAGE_KEY);
+        if (!data) {
+            // Migrate from old key to preserve user test history
+            const oldData = localStorage.getItem('novabug_test_logs');
+            if (oldData) {
+                localStorage.setItem(this.STORAGE_KEY, oldData);
+                localStorage.removeItem('novabug_test_logs');
+                data = oldData;
+            } else {
+                this.saveAll(SEED_DATA);
+                return SEED_DATA;
+            }
+        }
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            console.error("Failed to parse logs, resetting store.", e);
+            this.saveAll([]);
+            return [];
+        }
     }
 
-    static async save(log) {
-        const res = await fetch(`${API_BASE}/logs.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(log)
-        });
-        return res.json();
+    static saveAll(logs) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(logs));
     }
 
-    static async updateStatus(id, status) {
-        const res = await fetch(`${API_BASE}/logs.php`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, status })
-        });
-        return res.json();
-    }
-
-    static async delete(id) {
-        const res = await fetch(`${API_BASE}/logs.php?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-        return res.json();
-    }
-}
-
-class PrintSettingsStore {
-    static async get() {
-        const res = await fetch(`${API_BASE}/settings.php`);
-        return res.json();
-    }
-
-    static async save(settings) {
-        const res = await fetch(`${API_BASE}/settings.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(settings)
-        });
-        return res.json();
+    static reset() {
+        this.saveAll(SEED_DATA);
+        return SEED_DATA;
     }
 }
 
