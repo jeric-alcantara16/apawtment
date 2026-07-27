@@ -1747,3 +1747,109 @@ select.dashboard-status-select {
         font-size: 0.68rem !important;
     }
 }
+
+/* Dashboard Table Responsive Mobile Stacking Cards */
+@media (max-width: 768px) {
+    /* Hide table header */
+    .dashboard-table thead {
+        display: none !important;
+    }
+
+    /* Convert table to block list */
+    .dashboard-table,
+    .dashboard-table tbody,
+    .dashboard-table tr,
+    .dashboard-table td {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Make each row behave like a card */
+    .dashboard-table tr {
+        background-color: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        margin-bottom: 1.25rem !important;
+        padding: 1.25rem !important;
+        box-shadow: var(--shadow-sm) !important;
+        transition: transform var(--transition-normal) !important;
+    }
+
+    .dashboard-table tr:hover {
+        transform: translateY(-2px) !important;
+        border-color: var(--card-hover-border) !important;
+    }
+
+    /* Style the td cells to stack and show data labels */
+    .dashboard-table td {
+        border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important;
+        padding: 0.6rem 0 !important;
+        text-align: left !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.25rem !important;
+    }
+
+    .dashboard-table td:last-child {
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Inject description labels */
+    .dashboard-table td[data-label]::before {
+        content: attr(data-label) !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.75px !important;
+        color: var(--text-muted) !important;
+        display: block !important;
+    }
+
+    /* Special treatment for ID cell */
+    .dashboard-table td[data-label="Test ID"] {
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        color: var(--primary-color) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding-bottom: 0.8rem !important;
+        margin-bottom: 0.4rem !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    .dashboard-table td[data-label="Test ID"]::before {
+        content: "Test Case ID" !important;
+        font-size: 0.8rem !important;
+        color: var(--text-secondary) !important;
+    }
+
+    /* Align status select nicely on mobile */
+    .dashboard-status-select {
+        width: 100% !important;
+        max-width: 120px !important;
+        margin-top: 0.25rem !important;
+    }
+
+    /* Actions buttons layout on mobile */
+    .dashboard-table td[data-label="Actions"] {
+        flex-direction: row !important;
+        gap: 0.5rem !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        padding-top: 0.8rem !important;
+        border-top: 1px dashed var(--border-color) !important;
+        margin-top: 0.4rem !important;
+    }
+    .dashboard-table td[data-label="Actions"]::before {
+        display: none !important; /* Hide Actions label on mobile since button text is self-explanatory */
+    }
+
+    .dashboard-table td[data-label="Actions"] .btn {
+        flex: 1 1 50% !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+}

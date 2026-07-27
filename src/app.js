@@ -1,3 +1,5 @@
+import { BugStore, PrintSettingsStore } from './apistores.js';
+
 /**
  * NovaBug - Bug Management & Test Run Registry
  * Core Javascript Application Logic - Branding, Rebranding, Roles & User Fields Edition
@@ -217,72 +219,7 @@ const DEFAULT_PRINT_SETTINGS = {
     checkedAdviser: "Anthony G. Marquez, LPT, MIT"
 };
 
-// --- Local Storage Management Store ---
-class BugStore {
-    static STORAGE_KEY = 'apawtment_test_logs';
 
-    static getAll() {
-        let data = localStorage.getItem(this.STORAGE_KEY);
-        if (!data) {
-            // Migrate from old key to preserve user test history
-            const oldData = localStorage.getItem('novabug_test_logs');
-            if (oldData) {
-                localStorage.setItem(this.STORAGE_KEY, oldData);
-                localStorage.removeItem('novabug_test_logs');
-                data = oldData;
-            } else {
-                this.saveAll(SEED_DATA);
-                return SEED_DATA;
-            }
-        }
-        try {
-            return JSON.parse(data);
-        } catch (e) {
-            console.error("Failed to parse logs, resetting store.", e);
-            this.saveAll([]);
-            return [];
-        }
-    }
-
-    static saveAll(logs) {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(logs));
-    }
-
-    static reset() {
-        this.saveAll(SEED_DATA);
-        return SEED_DATA;
-    }
-}
-
-// --- Print Settings Storage ---
-class PrintSettingsStore {
-    static STORAGE_KEY = 'apawtment_print_settings';
-
-    static get() {
-        let data = localStorage.getItem(this.STORAGE_KEY);
-        if (!data) {
-            // Migrate from old key to preserve print signature values
-            const oldData = localStorage.getItem('novabug_print_settings');
-            if (oldData) {
-                localStorage.setItem(this.STORAGE_KEY, oldData);
-                localStorage.removeItem('novabug_print_settings');
-                data = oldData;
-            } else {
-                this.save(DEFAULT_PRINT_SETTINGS);
-                return DEFAULT_PRINT_SETTINGS;
-            }
-        }
-        try {
-            return JSON.parse(data);
-        } catch (e) {
-            return DEFAULT_PRINT_SETTINGS;
-        }
-    }
-
-    static save(settings) {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
-    }
-}
 
 // --- Application UI Controller ---
 class App {
@@ -372,9 +309,18 @@ class App {
         this.init();
     }
 
-    init() {
-        this.logs = BugStore.getAll();
-        this.printSettings = PrintSettingsStore.get();
+    async init() {
+        try {
+            this.logs = await BugStore.getAll();
+            if (this.logs.length === 0) {
+                // Auto seed on first MySQL load to match original localStorage behavior
+                this.logs = await BugStore.reset(SEED_DATA);
+            }
+            this.printSettings = await PrintSettingsStore.get();
+        } catch (err) {
+            console.error("Failed to load initial data from MySQL:", err);
+            this.showToast("Connection to MySQL API failed", "error");
+        }
 
         // Retrieve persistent admin login status
         this.isAdmin = sessionStorage.getItem('apawtment_admin') === 'true' || sessionStorage.getItem('novabug_admin') === 'true';
@@ -793,7 +739,7 @@ class App {
     }
 
     // --- Real-time Spreadsheet Synchronization ---
-    syncSpreadsheetToStore() {
+    async syncSpreadsheetToStore() {
         const rows = this.modalTableBody.querySelectorAll('.modal-row');
         const updatedLogs = [];
 
@@ -832,13 +778,18 @@ class App {
             }
         });
 
-        // Save dynamically to storage and updates state
-        BugStore.saveAll(updatedLogs);
-        this.logs = updatedLogs;
+        try {
+            // Save dynamically to storage and updates state
+            await BugStore.saveAll(updatedLogs);
+            this.logs = updatedLogs;
 
-        // Re-draw background filters & tables dynamically
-        this.updateModuleFilters();
-        this.render();
+            // Re-draw background filters & tables dynamically
+            this.updateModuleFilters();
+            this.render();
+        } catch (err) {
+            console.error("Failed to sync spreadsheet to MySQL:", err);
+            this.showToast("Database synchronization failed", "error");
+        }
     }
 
     // --- Close Sheet Validation ---
@@ -879,7 +830,7 @@ class App {
     }
 
     // --- Print Settings Real-time Sync ---
-    syncPrintSettingsToStore() {
+    async syncPrintSettingsToStore() {
         this.printSettings = {
             groupName: document.getElementById('setup-group-name').value.trim(),
             systemTitle: document.getElementById('setup-system-title').value.trim(),
@@ -891,7 +842,11 @@ class App {
             checkedAdviser: document.getElementById('setup-checked-adviser').value.trim()
         };
 
-        PrintSettingsStore.save(this.printSettings);
+        try {
+            await PrintSettingsStore.save(this.printSettings);
+        } catch (err) {
+            console.error("Failed to save print settings to MySQL:", err);
+        }
     }
 
     openPrintSettingsModal() {
@@ -913,14 +868,14 @@ class App {
         document.body.style.overflow = '';
     }
 
-    handlePrintSettingsSubmit() {
+    async handlePrintSettingsSubmit() {
         // Save final variables and close modal
-        this.syncPrintSettingsToStore();
+        await this.syncPrintSettingsToStore();
         this.showToast("Report print settings updated successfully!", "success");
         this.closePrintSettingsModal();
     }
 
-    handleTesterAddSubmit() {
+    async handleTesterAddSubmit() {
         const datetime = this.getLocalDateString(); // Auto GMT+8 time
         const module = this.testerModule.value.trim();
         const scenario = this.testerScenario.value.trim();
@@ -958,16 +913,18 @@ class App {
             comments
         };
 
-        const logs = BugStore.getAll();
-        logs.push(newLog);
-        BugStore.saveAll(logs);
+        try {
+            await BugStore.add(newLog);
+            this.logs = await BugStore.getAll();
+            this.updateModuleFilters();
+            this.render();
 
-        this.logs = logs;
-        this.updateModuleFilters();
-        this.render();
-
-        this.testerAddModal.classList.add('hidden');
-        this.showToast(`Test Case added successfully!`, "success");
+            this.testerAddModal.classList.add('hidden');
+            this.showToast(`Test Case added successfully!`, "success");
+        } catch (err) {
+            console.error("Failed to add test log to MySQL:", err);
+            this.showToast("Failed to save test case to database", "error");
+        }
     }
 
     updateModuleFilters() {
@@ -1039,13 +996,51 @@ class App {
                 <!-- University Banner Header -->
                 <header class="print-form-header">
                     <div class="print-logo-left">
-                        <svg class="print-svg-logo" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="#d97706" stroke-width="4"/>
-                            <circle cx="50" cy="50" r="38" fill="none" stroke="#1d4ed8" stroke-width="2"/>
-                            <polygon points="50,20 25,45 25,75 50,85 75,75 75,45" fill="#1e3a8a" opacity="0.3"/>
-                            <path d="M50,15 L50,85" stroke="#d97706" stroke-width="2" stroke-dasharray="2 2"/>
-                            <path d="M30,50 Q50,70 70,50" fill="none" stroke="#d97706" stroke-width="3" stroke-linecap="round"/>
-                            <circle cx="50" cy="42" r="8" fill="#d97706"/>
+                        <svg class="print-svg-logo" viewBox="0 0 100 100" style="width: 50px; height: 50px;">
+                            <!-- Gold sun rays border -->
+                            <circle cx="50" cy="50" r="46" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+                            <g stroke="#d97706" stroke-width="1.5">
+                                <line x1="50" y1="4" x2="50" y2="8" />
+                                <line x1="50" y1="96" x2="50" y2="92" />
+                                <line x1="4" y1="50" x2="8" y2="50" />
+                                <line x1="96" y1="50" x2="92" y2="50" />
+                                <line x1="17.5" y1="17.5" x2="20.5" y2="20.5" />
+                                <line x1="82.5" y1="82.5" x2="79.5" y2="79.5" />
+                                <line x1="17.5" y1="82.5" x2="20.5" y2="79.5" />
+                                <line x1="82.5" y1="17.5" x2="79.5" y2="20.5" />
+                                <line x1="31.2" y1="10.8" x2="33.2" y2="14.3" />
+                                <line x1="68.8" y1="89.2" x2="66.8" y2="85.7" />
+                                <line x1="68.8" y1="10.8" x2="66.8" y2="14.3" />
+                                <line x1="31.2" y1="89.2" x2="33.2" y2="85.7" />
+                                <line x1="10.8" y1="31.2" x2="14.3" y2="33.2" />
+                                <line x1="89.2" y1="68.8" x2="85.7" y2="66.8" />
+                                <line x1="89.2" y1="31.2" x2="85.7" y2="33.2" />
+                                <line x1="10.8" y1="68.8" x2="14.3" y2="66.8" />
+                            </g>
+                            <!-- Dark blue outer ring -->
+                            <circle cx="50" cy="50" r="41" fill="#1e3a8a" stroke="#d97706" stroke-width="1" />
+                            <!-- White text inside ring using textPath -->
+                            <path id="ucu-text-path-top" d="M 14 50 A 36 36 0 1 1 86 50" fill="none" stroke="none" />
+                            <path id="ucu-text-path-bottom" d="M 86 50 A 36 36 0 0 1 14 50" fill="none" stroke="none" />
+                            <text>
+                                <textPath href="#ucu-text-path-top" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="4.2" font-family="Outfit, sans-serif" font-weight="700">URDANETA CITY UNIVERSITY</textPath>
+                            </text>
+                            <text>
+                                <textPath href="#ucu-text-path-bottom" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="5" font-family="Outfit, sans-serif" font-weight="700">1966</textPath>
+                            </text>
+                            <!-- Inner gold circle -->
+                            <circle cx="50" cy="50" r="30" fill="#fef08a" stroke="#d97706" stroke-width="1" />
+                            <!-- Shield in center -->
+                            <path d="M 36 40 L 64 40 C 64 40 64 62 50 72 C 36 62 36 40 36 40 Z" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.5" />
+                            <!-- Red left, blue right divisions inside shield -->
+                            <path d="M 37 41 L 50 41 L 50 70.5 C 41 62.5 37.5 48 37 41 Z" fill="#b91c1c" />
+                            <path d="M 50 41 L 63 41 C 62.5 48 59 62.5 50 70.5 L 50 41 Z" fill="#1d4ed8" />
+                            <!-- Open Book inside the shield -->
+                            <path d="M 40 54 Q 45 52 50 56 Q 55 52 60 54 L 60 46 Q 55 44 50 48 Q 45 44 40 46 Z" fill="#ffffff" stroke="#000000" stroke-width="0.5" />
+                            <line x1="50" y1="48" x2="50" y2="56" stroke="#000000" stroke-width="0.5" />
+                            <!-- Torch handle & flame -->
+                            <rect x="49" y="52" width="2" height="8" fill="#eab308" />
+                            <path d="M 50 43 Q 48 48 50 51 Q 52 48 50 43 Z" fill="#f43f5e" />
                         </svg>
                         <div class="print-logo-text-left">
                             <div class="txt-main-uni">URDANETA CITY</div>
@@ -1060,11 +1055,35 @@ class App {
                             <div class="txt-college-sub">Technology</div>
                             <div class="txt-college-sub">Education</div>
                         </div>
-                        <svg class="print-svg-logo" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="32" fill="#1e3a8a"/>
-                            <circle cx="50" cy="50" r="22" fill="#ffffff"/>
-                            <path d="M50,10 L50,20 M50,80 L50,90 M10,50 L20,50 M80,50 L90,50 M22,22 L29,29 M71,71 L78,78 M22,78 L29,71 M71,22 L78,29" stroke="#1e3a8a" stroke-width="8" stroke-linecap="round"/>
-                            <rect x="42" y="42" width="16" height="16" rx="2" fill="#1e3a8a"/>
+                        <svg class="print-svg-logo" viewBox="0 0 100 100" style="width: 50px; height: 50px;">
+                            <!-- Blue outer ring -->
+                            <circle cx="50" cy="50" r="45" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="2" />
+                            <!-- Inner white circle -->
+                            <circle cx="50" cy="50" r="37" fill="#ffffff" stroke="#1d4ed8" stroke-width="1" />
+                            <!-- Text CITE inside outer ring -->
+                            <path id="cite-text-path-top" d="M 12 50 A 38 38 0 1 1 88 50" fill="none" stroke="none" />
+                            <path id="cite-text-path-bottom" d="M 88 50 A 38 38 0 0 1 12 50" fill="none" stroke="none" />
+                            <text>
+                                <textPath href="#cite-text-path-top" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="4.2" font-family="Outfit, sans-serif" font-weight="700">COLLEGE OF INFORMATION & TECH. ED.</textPath>
+                            </text>
+                            <text>
+                                <textPath href="#cite-text-path-bottom" startOffset="50%" text-anchor="middle" fill="#ffffff" font-size="5" font-family="Outfit, sans-serif" font-weight="800">CITE</textPath>
+                            </text>
+                            <!-- Circuit board design in center -->
+                            <g fill="none" stroke="#1e3a8a" stroke-width="1.5">
+                                <rect x="42" y="42" width="16" height="16" rx="2" fill="#1e3a8a" stroke="none" />
+                                <rect x="45" y="45" width="10" height="10" rx="1" fill="#ffffff" stroke="none" />
+                                <path d="M 50 30 L 50 42 M 50 58 L 50 70 M 30 50 L 42 50 M 58 50 L 70 50" />
+                                <path d="M 36 36 L 44 44 M 64 64 L 56 56 M 36 64 L 44 56 M 64 36 L 56 44" />
+                                <circle cx="50" cy="30" r="2.5" fill="#1e3a8a" stroke="none" />
+                                <circle cx="50" cy="70" r="2.5" fill="#1e3a8a" stroke="none" />
+                                <circle cx="30" cy="50" r="2.5" fill="#1e3a8a" stroke="none" />
+                                <circle cx="70" cy="50" r="2.5" fill="#1e3a8a" stroke="none" />
+                                <circle cx="36" cy="36" r="2" fill="#1e3a8a" stroke="none" />
+                                <circle cx="64" cy="64" r="2" fill="#1e3a8a" stroke="none" />
+                                <circle cx="36" cy="64" r="2" fill="#1e3a8a" stroke="none" />
+                                <circle cx="64" cy="36" r="2" fill="#1e3a8a" stroke="none" />
+                            </g>
                         </svg>
                     </div>
                 </header>
@@ -1163,37 +1182,36 @@ class App {
         }, 150);
     }
 
-    updateLogStatus(logId, newStatus) {
-        const logs = BugStore.getAll();
-        const updated = logs.map(item => {
-            if (item.id === logId) {
-                return { ...item, status: newStatus };
-            }
-            return item;
-        });
-
-        BugStore.saveAll(updated);
-        this.logs = updated;
-        this.render();
-        this.showToast(`Test status successfully updated to ${newStatus}`, "success");
+    async updateLogStatus(logId, newStatus) {
+        try {
+            await BugStore.updateStatus(logId, newStatus);
+            this.logs = await BugStore.getAll();
+            this.render();
+            this.showToast(`Test status successfully updated to ${newStatus}`, "success");
+        } catch (err) {
+            console.error("Failed to update status in MySQL:", err);
+            this.showToast("Failed to update status on server", "error");
+        }
     }
 
-    deleteBug(id) {
+    async deleteBug(id) {
         if (!this.isAdmin) {
             this.showToast("Permission denied. Admin rights required to delete log.", "error");
             return;
         }
 
         if (confirm("Are you sure you want to delete this test log entry?")) {
-            const logs = BugStore.getAll();
-            const filtered = logs.filter(item => item.id !== id);
-            BugStore.saveAll(filtered);
+            try {
+                await BugStore.delete(id);
+                this.logs = await BugStore.getAll();
+                this.updateModuleFilters();
+                this.render();
 
-            this.logs = filtered;
-            this.updateModuleFilters();
-            this.render();
-
-            this.showToast("Test case log deleted", "info");
+                this.showToast("Test case log deleted", "info");
+            } catch (err) {
+                console.error("Failed to delete log in MySQL:", err);
+                this.showToast("Failed to delete log from server", "error");
+            }
         }
     }
 
@@ -1266,7 +1284,7 @@ class App {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const imported = JSON.parse(e.target.result);
                 if (!Array.isArray(imported)) {
@@ -1284,14 +1302,14 @@ class App {
                 const confirmAppend = confirm(`Loaded ${imported.length} items. Do you want to merge these with your existing store? (Cancel to replace instead)`);
 
                 if (confirmAppend) {
-                    const existing = BugStore.getAll();
+                    const existing = await BugStore.getAll();
                     imported.forEach(item => {
                         item.id = 'tc-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
                         if (!item.datetime) item.datetime = this.getLocalDateString();
                         if (!item.user) item.user = 'Fur Parent';
                         existing.push(item);
                     });
-                    BugStore.saveAll(existing);
+                    await BugStore.saveAll(existing);
                 } else {
                     const confirmReplace = confirm("Are you sure you want to replace ALL local data with the imported file?");
                     if (!confirmReplace) return;
@@ -1300,11 +1318,11 @@ class App {
                         if (!item.datetime) item.datetime = this.getLocalDateString();
                         if (!item.user) item.user = 'Fur Parent';
                     });
-                    BugStore.saveAll(imported);
+                    await BugStore.saveAll(imported);
                 }
 
                 this.showToast("JSON data imported successfully!", "success");
-                this.logs = BugStore.getAll();
+                this.logs = await BugStore.getAll();
                 this.updateModuleFilters();
                 this.render();
             } catch (err) {
@@ -1316,18 +1334,23 @@ class App {
         event.target.value = "";
     }
 
-    resetDataStore() {
+    async resetDataStore() {
         if (!this.isAdmin) {
             this.showToast("Admin credentials required to reset datastore.", "error");
             return;
         }
 
         if (confirm("Resetting will revert local data back to the default seed logs. Proceed?")) {
-            this.logs = BugStore.reset();
-            this.updateModuleFilters();
-            this.expandedCellIds.clear();
-            this.render();
-            this.showToast("Data store reset successfully", "info");
+            try {
+                this.logs = await BugStore.reset(SEED_DATA);
+                this.updateModuleFilters();
+                this.expandedCellIds.clear();
+                this.render();
+                this.showToast("Data store reset successfully", "info");
+            } catch (err) {
+                console.error("Failed to reset datastore in MySQL:", err);
+                this.showToast("Failed to reset datastore", "error");
+            }
         }
     }
 
@@ -1533,7 +1556,7 @@ class App {
 
                 // Actions cell (only for Admins)
                 const actionsCellHTML = this.isAdmin ? `
-                    <td style="text-align: right; vertical-align: middle; white-space: nowrap;">
+                    <td data-label="Actions" style="text-align: right; vertical-align: middle; white-space: nowrap;">
                         <button class="btn btn-secondary btn-sm btn-edit-row" data-id="${log.id}" title="Edit this log" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; border-color: var(--border-color); cursor: pointer;">
                             Edit
                         </button>
@@ -1544,25 +1567,25 @@ class App {
                 ` : '';
 
                 tr.innerHTML = `
-                    <td class="font-mono" style="font-weight:700; text-align:center;">${tcDisplayId}</td>
-                    <td style="font-size: 0.8rem; color: var(--text-secondary); text-align:center; white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
-                    <td class="col-module">${this.highlightText(log.module || '', searchQuery)}</td>
-                    <td style="font-weight:500;">${this.highlightText(log.scenario || '', searchQuery)}</td>
-                    <td>
+                    <td data-label="Test ID" class="font-mono" style="font-weight:700; text-align:center;">${tcDisplayId}</td>
+                    <td data-label="Date & Time" style="font-size: 0.8rem; color: var(--text-secondary); text-align:center; white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
+                    <td data-label="Module" class="col-module">${this.highlightText(log.module || '', searchQuery)}</td>
+                    <td data-label="Test Scenario" style="font-weight:500;">${this.highlightText(log.scenario || '', searchQuery)}</td>
+                    <td data-label="Test Steps">
                         <div class="cell-expandable ${stepsExpanded ? 'expanded' : ''}" data-cell-id="${stepsCellId}">
                             ${this.formatMultilineHTML(log.steps || '', searchQuery)}
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Expected Result">
                         <div class="cell-expandable ${expectedExpanded ? 'expanded' : ''}" data-cell-id="${expectedCellId}">
                             ${this.formatMultilineHTML(log.expected || '', searchQuery)}
                         </div>
                     </td>
-                    <td style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
-                    <td style="text-align:center; vertical-align:middle;">
+                    <td data-label="User Role" style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
+                    <td data-label="Status" style="text-align:center; vertical-align:middle;">
                         ${statusCellHTML}
                     </td>
-                    <td>
+                    <td data-label="Comments / Bugs Found">
                         <div class="cell-expandable ${commentsExpanded ? 'expanded' : ''}" data-cell-id="${commentsCellId}">
                             ${log.comments ? this.formatMultilineHTML(log.comments, searchQuery) : ''}
                         </div>
