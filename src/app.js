@@ -65,6 +65,12 @@ class App {
         this.adminPasswordInput = document.getElementById('admin-password');
         this.adminLoginCloseBtn = document.getElementById('admin-login-close-btn');
         this.adminLoginCancelBtn = document.getElementById('admin-login-cancel-btn');
+
+        // System Manual Controls
+        this.btnOpenManual = document.getElementById('btn-open-manual');
+        this.manualModal = document.getElementById('manual-modal');
+        this.manualCloseBtn = document.getElementById('manual-close-btn');
+        this.manualOkBtn = document.getElementById('manual-ok-btn');
         this.lockIconLocked = document.getElementById('lock-icon-locked');
         this.lockIconUnlocked = document.getElementById('lock-icon-unlocked');
 
@@ -291,6 +297,28 @@ class App {
         this.adminLoginModal.addEventListener('click', (e) => {
             if (e.target === this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
         });
+
+        // System Manual Modal Controls
+        if (this.btnOpenManual) {
+            this.btnOpenManual.addEventListener('click', () => {
+                this.manualModal.classList.remove('hidden');
+            });
+        }
+        if (this.manualCloseBtn) {
+            this.manualCloseBtn.addEventListener('click', () => {
+                this.manualModal.classList.add('hidden');
+            });
+        }
+        if (this.manualOkBtn) {
+            this.manualOkBtn.addEventListener('click', () => {
+                this.manualModal.classList.add('hidden');
+            });
+        }
+        if (this.manualModal) {
+            this.manualModal.addEventListener('click', (e) => {
+                if (e.target === this.manualModal) this.manualModal.classList.add('hidden');
+            });
+        }
 
         // Tester-Only Single Add Modal Controls
         this.btnTesterAdd.addEventListener('click', () => {

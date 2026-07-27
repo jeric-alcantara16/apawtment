@@ -68,6 +68,17 @@
                     </svg>
                 </button>
 
+                <!-- System Manual / Help Button -->
+                <button id="btn-open-manual" class="icon-btn" aria-label="System Manual"
+                    title="Open System Manual & Step-by-Step Guide">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+
                 <!-- Print Setup Settings Button -->
                 <button id="btn-open-print-settings" class="icon-btn" aria-label="Print Settings"
                     title="Configure Print Form Details">
@@ -481,6 +492,154 @@
         </div>
     </div>
 
+    <!-- System Manual / Help Guide Modal -->
+    <div class="modal-overlay hidden" id="manual-modal">
+        <div class="modal-card modal-card-wide" style="max-width: 900px; max-height: 85vh; overflow-y: auto;">
+            <header class="modal-header" style="position: sticky; top: 0; background: var(--bg-card); z-index: 10; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <div>
+                    <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        APawtMent System Manual & Button Guide
+                    </h2>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Step-by-step procedure on how every section, feature, and button works.</p>
+                </div>
+                <button id="manual-close-btn" class="icon-btn-close" aria-label="Close modal">&times;</button>
+            </header>
+
+            <div class="manual-content" style="padding: 1rem 0; line-height: 1.6;">
+                
+                <!-- Section 1: Header Buttons -->
+                <div class="manual-section" style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 0.4rem; margin-top: 0;">
+                        1. Header Buttons & Controls
+                    </h3>
+                    <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                            <strong>🔒 / 🔓 Admin Toggle Button:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Click to log in to <strong>Admin Mode</strong> using the password <code>admin123</code>. Unlocking Admin Mode enables the <em>Edit Logs Table</em> spreadsheet editor.</p>
+                        </div>
+
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <strong>☀️ / 🌙 Theme Toggle Button:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Instantly switches between <strong>Dark Mode</strong> and <strong>Light Mode</strong>. Your choice is saved automatically.</p>
+                        </div>
+
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #8b5cf6;">
+                            <strong>❓ System Manual Button:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Opens this interactive System Manual & Step-by-Step Procedure popup anytime.</p>
+                        </div>
+
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                            <strong>⚙️ Configure Print Form Button:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Opens the Print Layout setup window to update Group Name, System Title, Adviser, Researchers, and Signature lines.</p>
+                        </div>
+
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <strong>🖨️ Print Testing Form Button:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Generates and opens the formal UCU Capstone QA Testing Form layout ready for PDF export or paper printing.</p>
+                        </div>
+
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #ec4899;">
+                            <strong>➕ Add Test Case Button:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Opens the single test case logging form for Testers and Fur Parents to record a new test scenario run.</p>
+                        </div>
+
+                        <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; border-left: 4px solid #6366f1;">
+                            <strong>📊 Edit Logs Table Button (Admin Only):</strong>
+                            <p style="margin: 0.25rem 0 0 0;">Opens the full-screen spreadsheet editor (Excel-style) to edit or add multiple test logs simultaneously.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Dashboard Analytics -->
+                <div class="manual-section" style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 0.4rem;">
+                        2. Dashboard Analytics Cards
+                    </h3>
+                    <ul style="padding-left: 1.2rem; margin-top: 0.75rem;">
+                        <li><strong>Total Logged:</strong> Live counter of all test scenarios stored in Supabase.</li>
+                        <li><strong>Passed Tests:</strong> Count and percentage of test runs with status <code>PASS</code>.</li>
+                        <li><strong>Failed / Bugs Found:</strong> Count and percentage of test runs with status <code>FAIL</code>.</li>
+                        <li><strong>Success Rate Ring:</strong> Dynamic SVG progress ring illustrating overall QA pass rate.</li>
+                    </ul>
+                </div>
+
+                <!-- Section 3: Toolbar & Data Actions -->
+                <div class="manual-section" style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 0.4rem;">
+                        3. Toolbar Search, Filters & Data Actions
+                    </h3>
+                    <ul style="padding-left: 1.2rem; margin-top: 0.75rem;">
+                        <li><strong>Search Bar:</strong> Type keywords to filter logs by Test ID, Module name, Scenario, Steps, or Comments.</li>
+                        <li><strong>Module Filter:</strong> Filter logs by screen/feature (e.g. <em>Login Form, Profile, Reports, AI Page, QR Scanner</em>).</li>
+                        <li><strong>Status Filter:</strong> Show <code>All Statuses</code>, <code>PASS</code> only, or <code>FAIL</code> only.</li>
+                        <li><strong>User Role Filter:</strong> Filter by <em>Admin, Sub-Admin (Staff), Sub-Admin (Vet), or Fur Parent</em>.</li>
+                        <li><strong>Data Actions Menu:</strong>
+                            <ul style="padding-left: 1.2rem; margin-top: 0.25rem;">
+                                <li><strong>Export CSV:</strong> Download test logs as a <code>.csv</code> file for Excel or Google Sheets.</li>
+                                <li><strong>Export JSON:</strong> Backup test data as a <code>.json</code> file.</li>
+                                <li><strong>Import JSON:</strong> Restore test logs from a local backup file.</li>
+                                <li><strong>Reset Store:</strong> Restore default 18 Capstone seed test logs in Supabase.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Section 4: Operating Procedures -->
+                <div class="manual-section" style="margin-bottom: 1rem;">
+                    <h3 style="color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 0.4rem;">
+                        4. Step-by-Step Operating Procedures
+                    </h3>
+                    
+                    <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-color);">Step 1: Unlocking Admin Mode</h4>
+                        <ol style="margin: 0; padding-left: 1.2rem;">
+                            <li>Click the 🔒 <strong>Lock Icon</strong> in the top-right header.</li>
+                            <li>Enter password <code>admin123</code> into the dialog.</li>
+                            <li>Click <strong>Verify Credentials</strong>. The icon turns green 🔓.</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-color);">Step 2: Adding a New Test Log</h4>
+                        <ol style="margin: 0; padding-left: 1.2rem;">
+                            <li>Click <strong>➕ Add Test Case</strong> in the header.</li>
+                            <li>Fill in Module, Test Scenario, Test Steps, Expected Result, User Role, and Status.</li>
+                            <li>Click <strong>Add Test Case</strong> to save directly to Supabase.</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-color);">Step 3: Toggling PASS/FAIL Status</h4>
+                        <ol style="margin: 0; padding-left: 1.2rem;">
+                            <li>Locate the test row in the main registry table.</li>
+                            <li>Click directly on the green <code>PASS</code> or red <code>FAIL</code> badge.</li>
+                            <li>The status updates instantly in Supabase and recalculates success rate metrics.</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: var(--bg-hover); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--text-color);">Step 4: Printing Official QA Test Report</h4>
+                        <ol style="margin: 0; padding-left: 1.2rem;">
+                            <li>Click <strong>⚙️ Gear Icon</strong> to verify Group Name and Adviser Signatures.</li>
+                            <li>Click <strong>🖨️ Print Testing Form</strong> in the header.</li>
+                            <li>In the print window, select <strong>Save as PDF</strong> or choose your printer.</li>
+                        </ol>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer" style="padding-top: 1rem; border-top: 1px solid var(--border-color); text-align: right;">
+                <button type="button" id="manual-ok-btn" class="btn btn-primary">Close Manual</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Autocomplete modules datalist -->
     <datalist id="modules-list"></datalist>
 
@@ -489,7 +648,7 @@
 
     <!-- Supabase JS Client — deploy: 2026-07-27 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="src/app.js?v=5" type="module"></script>
+    <script src="src/app.js?v=6" type="module"></script>
 </body>
 
 </html>
