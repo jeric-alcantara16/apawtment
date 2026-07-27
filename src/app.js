@@ -678,8 +678,8 @@ class App {
     }
 
     getLocalDateString() {
-        const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-        return (new Date(Date.now() - tzOffset)).toISOString().slice(0, 16);
+        const phOffset = 8 * 60 * 60 * 1000; // GMT+8 offset in milliseconds
+        return new Date(Date.now() + phOffset).toISOString().slice(0, 16);
     }
 
     // --- Modal Table Sheet Render Engine ---
