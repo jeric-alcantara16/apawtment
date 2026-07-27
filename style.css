@@ -629,14 +629,13 @@ select:focus {
 .cell-expandable {
     max-height: 4.8em;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    display: block;
     cursor: pointer;
     transition: max-height var(--transition-normal) ease;
     white-space: pre-wrap;
     color: var(--text-primary);
     position: relative;
+    text-align: left;
 }
 
 .cell-expandable::after {
