@@ -292,7 +292,7 @@ class App {
         this.dashboardTableWrapper = document.getElementById('dashboard-table-wrapper');
         this.dashboardTableBody = document.getElementById('dashboard-table-body');
         this.emptyState = document.getElementById('empty-state');
-        
+
         // Modal & Form elements (Editable Grid Modal for Admin)
         this.bugModal = document.getElementById('bug-modal');
         this.bugForm = document.getElementById('bug-form');
@@ -300,12 +300,12 @@ class App {
         this.btnModalAddRow = document.getElementById('btn-modal-add-row');
         this.modalCloseBtn = document.getElementById('modal-close-btn');
         this.modalCancelBtn = document.getElementById('modal-cancel-btn');
-        
+
         // Header Controls
         this.newBugBtn = document.getElementById('new-bug-btn');
         this.emptyStateBtn = document.getElementById('empty-state-btn');
         this.themeToggleBtn = document.getElementById('theme-toggle-btn');
-        
+
         // Tester-Only Single Add Modal Controls
         this.btnTesterAdd = document.getElementById('btn-tester-add');
         this.testerAddModal = document.getElementById('tester-add-modal');
@@ -336,7 +336,7 @@ class App {
         this.filterStatus = document.getElementById('filter-status');
         this.filterUser = document.getElementById('filter-user');
         this.sortOrder = document.getElementById('sort-order');
-        
+
         // Dashboard Stats
         this.statTotal = document.getElementById('stat-total');
         this.statPass = document.getElementById('stat-pass');
@@ -368,14 +368,14 @@ class App {
         this.printSettings = {};
         this.filteredLogsForPrint = [];
         this.isAdmin = false;
-        
+
         this.init();
     }
 
     init() {
         this.logs = BugStore.getAll();
         this.printSettings = PrintSettingsStore.get();
-        
+
         // Retrieve persistent admin login status
         this.isAdmin = sessionStorage.getItem('apawtment_admin') === 'true' || sessionStorage.getItem('novabug_admin') === 'true';
 
@@ -417,12 +417,12 @@ class App {
             this.lockIconLocked.classList.add('hidden');
             this.lockIconUnlocked.classList.remove('hidden');
             this.newBugBtn.classList.remove('hidden');
-            
+
             // Hide the tester-only single add case button for admin
             this.btnTesterAdd.classList.add('hidden');
-            
+
             this.emptyStateBtn.textContent = "Open Table Editor";
-            
+
             // Show administrative buttons inside the drop menu
             this.btnResetData.classList.remove('hidden');
             const fileLabel = this.importJsonFile.closest('.file-label');
@@ -432,12 +432,12 @@ class App {
             this.lockIconLocked.classList.remove('hidden');
             this.lockIconUnlocked.classList.add('hidden');
             this.newBugBtn.classList.add('hidden');
-            
+
             // Show the tester-only single add case button for tester
             this.btnTesterAdd.classList.remove('hidden');
-            
+
             this.emptyStateBtn.textContent = "Add Test Case";
-            
+
             // Hide administrative buttons from viewers
             this.btnResetData.classList.add('hidden');
             const fileLabel = this.importJsonFile.closest('.file-label');
@@ -548,7 +548,7 @@ class App {
         this.btnTesterAdd.addEventListener('click', () => {
             this.testerAddForm.reset();
             this.testerStatus.className = 'grid-select status-pass';
-            
+
             // Remove error glow borders
             const row = this.testerAddModal.querySelector('.modal-row');
             if (row) {
@@ -595,7 +595,7 @@ class App {
                 // Open the single add modal for testers
                 this.testerAddForm.reset();
                 this.testerStatus.className = 'grid-select status-pass';
-                
+
                 const row = this.testerAddModal.querySelector('.modal-row');
                 if (row) {
                     row.style.outline = 'none';
@@ -606,14 +606,14 @@ class App {
                 this.testerModule.focus();
             }
         });
-        
+
         // Modal closures
         this.modalCloseBtn.addEventListener('click', () => this.closeModal());
         this.modalCancelBtn.addEventListener('click', () => this.closeModal());
         this.bugModal.addEventListener('click', (e) => {
             if (e.target === this.bugModal) this.closeModal();
         });
-        
+
         // Add row in modal
         this.btnModalAddRow.addEventListener('click', () => {
             this.addNewRowToModalTable();
@@ -658,13 +658,13 @@ class App {
         this.printSettingsModal.addEventListener('click', (e) => {
             if (e.target === this.printSettingsModal) this.closePrintSettingsModal();
         });
-        
+
         // Save buttons for print settings just close the modal (since print settings sync in real-time)
         this.printSettingsForm.addEventListener('submit', (e) => {
             e.preventDefault();
             this.handlePrintSettingsSubmit();
         });
-        
+
         // Bind input listeners to print settings fields for real-time saving
         const printInputs = this.printSettingsForm.querySelectorAll('input, textarea');
         printInputs.forEach(inputEl => {
@@ -687,7 +687,7 @@ class App {
         }
 
         this.modalTableBody.innerHTML = '';
-        
+
         if (this.logs.length === 0) {
             this.addNewRowToModalTable();
         } else {
@@ -961,7 +961,7 @@ class App {
         const logs = BugStore.getAll();
         logs.push(newLog);
         BugStore.saveAll(logs);
-        
+
         this.logs = logs;
         this.updateModuleFilters();
         this.render();
@@ -980,7 +980,7 @@ class App {
             opt.textContent = mod;
             this.filterModule.appendChild(opt);
         });
-        
+
         if (allModules.includes(prevFilterVal)) {
             this.filterModule.value = prevFilterVal;
         }
@@ -1015,8 +1015,8 @@ class App {
         let bugRowsHTML = '';
         this.filteredLogsForPrint.forEach((log, index) => {
             const tcId = `TC-${String(index + 1).padStart(3, '0')}`;
-            const statusDisplay = log.status === 'PASS' ? 
-                '<div class="status-print-cell"><span class="box-checked">&#9745;</span> Pass</div>' : 
+            const statusDisplay = log.status === 'PASS' ?
+                '<div class="status-print-cell"><span class="box-checked">&#9745;</span> Pass</div>' :
                 '<div class="status-print-cell"><span class="box-failed">&#9746;</span> Fail</div>';
 
             bugRowsHTML += `
@@ -1025,11 +1025,11 @@ class App {
                     <td class="col-datetime" style="white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
                     <td class="col-mod">${escapeHTML(log.module)}</td>
                     <td class="col-scen">${escapeHTML(log.scenario)}</td>
-                    <td class="col-steps">${escapeHTML(log.steps).replace(/\n/g, '<br>')}</td>
-                    <td class="col-exp">${escapeHTML(log.expected).replace(/\n/g, '<br>')}</td>
+                    <td class="col-steps">${this.formatMultilinePrint(log.steps)}</td>
+                    <td class="col-exp">${this.formatMultilinePrint(log.expected)}</td>
                     <td class="col-user">${escapeHTML(log.user || 'Fur Parent')}</td>
                     <td class="col-status">${statusDisplay}</td>
-                    <td class="col-comments">${log.comments ? escapeHTML(log.comments).replace(/\n/g, '<br>') : ''}</td>
+                    <td class="col-comments">${log.comments ? this.formatMultilinePrint(log.comments) : ''}</td>
                 </tr>
             `;
         });
@@ -1156,7 +1156,7 @@ class App {
             this.showToast("No test logs matched the filters. Cannot print empty form.", "error");
             return;
         }
-        
+
         this.syncPrintLayoutDOM();
         setTimeout(() => {
             window.print();
@@ -1188,11 +1188,11 @@ class App {
             const logs = BugStore.getAll();
             const filtered = logs.filter(item => item.id !== id);
             BugStore.saveAll(filtered);
-            
+
             this.logs = filtered;
             this.updateModuleFilters();
             this.render();
-            
+
             this.showToast("Test case log deleted", "info");
         }
     }
@@ -1206,7 +1206,7 @@ class App {
         }
 
         const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "User Role", "Status", "Comments"];
-        
+
         const escapeCSV = (val) => {
             if (val === null || val === undefined) return '';
             let stringVal = String(val).replace(/"/g, '""');
@@ -1229,7 +1229,7 @@ class App {
 
         const csvContent = "data:text/csv;charset=utf-8,"
             + [headers.join(','), ...rows.map(r => r.map(escapeCSV).join(','))].join('\n');
-            
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -1273,7 +1273,7 @@ class App {
                     throw new Error("Data should be an array of logs");
                 }
 
-                const isValidSchema = imported.every(item => 
+                const isValidSchema = imported.every(item =>
                     item.module && item.scenario && item.steps && item.expected && item.status
                 );
 
@@ -1282,7 +1282,7 @@ class App {
                 }
 
                 const confirmAppend = confirm(`Loaded ${imported.length} items. Do you want to merge these with your existing store? (Cancel to replace instead)`);
-                
+
                 if (confirmAppend) {
                     const existing = BugStore.getAll();
                     imported.forEach(item => {
@@ -1339,12 +1339,49 @@ class App {
         return text.replace(regex, '<mark class="highlight">$1</mark>');
     }
 
+    // --- Numbered / Multi-line Text Formatter (Dashboard cells) ---
+    // Renders each "\n"-separated line as its own row. If a line starts
+    // with a number marker ("1.", "2)", etc.) the marker is pinned to a
+    // fixed-width column and the text sits in a flexible column next to
+    // it, so wrapped continuation text hangs indented under the text
+    // instead of snapping back to the left edge under the number.
+    formatMultilineHTML(text, searchVal) {
+        if (!text) return '';
+        const lines = text.split('\n');
+        return lines.map(line => {
+            const match = line.match(/^(\s*)(\d+[.)])\s*(.*)$/);
+            if (match) {
+                const marker = match[2];
+                const content = match[3];
+                return `<div class="line-row"><span class="line-marker">${marker}</span><span class="line-text">${this.highlightText(content, searchVal)}</span></div>`;
+            }
+            if (line.trim() === '') return '';
+            return `<div class="line-row"><span class="line-text">${this.highlightText(line, searchVal)}</span></div>`;
+        }).join('');
+    }
+
+    // --- Numbered / Multi-line Text Formatter (Print form cells) ---
+    formatMultilinePrint(text) {
+        if (!text) return '';
+        const lines = escapeHTML(text).split('\n');
+        return lines.map(line => {
+            const match = line.match(/^(\s*)(\d+[.)])\s*(.*)$/);
+            if (match) {
+                const marker = match[2];
+                const content = match[3];
+                return `<div class="print-line-row"><span class="print-line-marker">${marker}</span><span class="print-line-text">${content}</span></div>`;
+            }
+            if (line.trim() === '') return '';
+            return `<div class="print-line-row"><span class="print-line-text">${line}</span></div>`;
+        }).join('');
+    }
+
     // --- Toast Alerts System ---
     showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        
+
         let icon = '';
         if (type === 'success') {
             icon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
@@ -1356,7 +1393,7 @@ class App {
 
         toast.innerHTML = `${icon}<span>${message}</span>`;
         container.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.remove();
         }, 5000);
@@ -1419,7 +1456,7 @@ class App {
             const userText = String(log.user || 'Fur Parent').toLowerCase();
             const commentsText = String(log.comments || '').toLowerCase();
 
-            const matchesSearch = !searchQuery || 
+            const matchesSearch = !searchQuery ||
                 moduleText.includes(searchQuery) ||
                 scenarioText.includes(searchQuery) ||
                 stepsText.includes(searchQuery) ||
@@ -1454,10 +1491,10 @@ class App {
         // Draw / empty state
         if (this.filteredLogsForPrint.length === 0) {
             this.dashboardTableWrapper.classList.add('hidden');
-            
+
             if (this.logs.length === 0) {
                 this.emptyState.querySelector('h2').textContent = "No Test Logs Found";
-                this.emptyState.querySelector('p').textContent = this.isAdmin ? 
+                this.emptyState.querySelector('p').textContent = this.isAdmin ?
                     "Start recording your test cycles by clicking 'Edit Logs Table' in the top bar." :
                     "Start logging test cases by clicking 'Add Test Case' in the top bar.";
             } else {
@@ -1470,10 +1507,10 @@ class App {
             this.dashboardTableWrapper.classList.remove('hidden');
 
             this.dashboardTableBody.innerHTML = '';
-            
+
             this.filteredLogsForPrint.forEach((log, index) => {
                 const tcDisplayId = `TC-${String(index + 1).padStart(3, '0')}`;
-                
+
                 const tr = document.createElement('tr');
                 tr.className = log.status === 'FAIL' ? 'dashboard-row-fail' : '';
 
@@ -1513,12 +1550,12 @@ class App {
                     <td style="font-weight:500;">${this.highlightText(log.scenario || '', searchQuery)}</td>
                     <td>
                         <div class="cell-expandable ${stepsExpanded ? 'expanded' : ''}" data-cell-id="${stepsCellId}">
-                            ${this.highlightText(log.steps || '', searchQuery)}
+                            ${this.formatMultilineHTML(log.steps || '', searchQuery)}
                         </div>
                     </td>
                     <td>
                         <div class="cell-expandable ${expectedExpanded ? 'expanded' : ''}" data-cell-id="${expectedCellId}">
-                            ${this.highlightText(log.expected || '', searchQuery)}
+                            ${this.formatMultilineHTML(log.expected || '', searchQuery)}
                         </div>
                     </td>
                     <td style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
@@ -1527,7 +1564,7 @@ class App {
                     </td>
                     <td>
                         <div class="cell-expandable ${commentsExpanded ? 'expanded' : ''}" data-cell-id="${commentsCellId}">
-                            ${log.comments ? this.highlightText(log.comments, searchQuery) : ''}
+                            ${log.comments ? this.formatMultilineHTML(log.comments, searchQuery) : ''}
                         </div>
                     </td>
                     ${actionsCellHTML}
@@ -1619,15 +1656,15 @@ function formatDateTime(isoStr) {
         if (parts.length < 2) return isoStr;
         const datePart = parts[0];
         const timePart = parts[1];
-        
+
         const timeParts = timePart.split(':');
         let hours = parseInt(timeParts[0], 10);
         const minutes = timeParts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // convert 0 to 12
-        
+
         const hoursStr = String(hours).padStart(2, '0');
         return `${datePart} ${hoursStr}:${minutes} ${ampm}`;
     } catch (e) {

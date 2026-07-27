@@ -682,10 +682,37 @@ select:focus {
     display: block;
     cursor: pointer;
     transition: max-height var(--transition-normal) ease;
-    white-space: pre-wrap;
     color: var(--text-primary);
     position: relative;
     text-align: left;
+}
+
+/* Each "\n"-separated line (e.g. numbered test steps) renders as its
+   own flex row: a fixed-width marker column + a flexible text column.
+   This makes wrapped continuation text hang indented under the step's
+   text instead of snapping back under the number. */
+.line-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35em;
+}
+
+.line-row+.line-row {
+    margin-top: 0.15em;
+}
+
+.line-marker {
+    flex: 0 0 auto;
+    min-width: 1.6em;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.line-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .cell-expandable::after {
@@ -1329,6 +1356,30 @@ select.dashboard-status-select {
     .print-data-table td {
         color: #000000;
         line-height: 1.3;
+    }
+
+    /* Same hanging-indent treatment as the on-screen tables, so
+       numbered Test Steps/Expected Result/Comments text lines up in
+       the printed form too. */
+    .print-line-row {
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+    }
+
+    .print-line-row+.print-line-row {
+        margin-top: 2px;
+    }
+
+    .print-line-marker {
+        flex: 0 0 auto;
+        min-width: 1.4em;
+        font-weight: 700;
+    }
+
+    .print-line-text {
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     /* Centered columns to match the dashboard table and modal editor */
