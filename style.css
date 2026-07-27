@@ -1736,4 +1736,14 @@ select.dashboard-status-select {
     .chart-card {
         grid-column: span 2;
     }
+
+    /* Stack Edit/Delete instead of letting them force column overflow */
+    .btn-edit-row,
+    .btn-delete-row {
+        display: block;
+        width: 100%;
+        margin: 2px 0 !important;
+        padding: 0.3rem 0.4rem !important;
+        font-size: 0.68rem !important;
+    }
 }
