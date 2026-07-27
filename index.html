@@ -196,6 +196,15 @@
                     </select>
                 </div>
                 <div class="select-wrapper">
+                    <select id="filter-user" aria-label="Filter by User Role">
+                        <option value="all">All User Roles</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Sub-Admin (Staff)">Sub-Admin (Staff)</option>
+                        <option value="Sub-Admin (Vet)">Sub-Admin (Vet)</option>
+                        <option value="Fur Parent">Fur Parent</option>
+                    </select>
+                </div>
+                <div class="select-wrapper">
                     <select id="sort-order" aria-label="Sort Order">
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
@@ -228,11 +237,12 @@
                 <table class="dashboard-table" id="dashboard-bugs-table">
                     <thead>
                         <tr>
-                            <th style="width: 7%">Test ID</th>
-                            <th style="width: 13%">Module/Form</th>
-                            <th style="width: 22%">Test Scenario</th>
-                            <th style="width: 20%">Test Steps</th>
-                            <th style="width: 18%">Expected Result</th>
+                            <th style="width: 5%">Test ID</th>
+                            <th style="width: 11%">Module/Form</th>
+                            <th style="width: 18%">Test Scenario</th>
+                            <th style="width: 18%">Test Steps</th>
+                            <th style="width: 16%">Expected Result</th>
+                            <th style="width: 12%">User Role</th>
                             <th style="width: 8%">Status</th>
                             <th style="width: 12%">Comments / Bugs Found</th>
                             <th style="width: 10%; text-align: right;">Actions</th>
@@ -296,12 +306,13 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%">TC ID</th>
-                                <th style="width: 14%">Module/Form</th>
-                                <th style="width: 22%">Test Scenario</th>
-                                <th style="width: 20%">Test Steps</th>
-                                <th style="width: 18%">Expected Result</th>
-                                <th style="width: 9%">Status</th>
-                                <th style="width: 12%">Comments / Bugs Found</th>
+                                <th style="width: 12%">Module/Form</th>
+                                <th style="width: 20%">Test Scenario</th>
+                                <th style="width: 18%">Test Steps</th>
+                                <th style="width: 16%">Expected Result</th>
+                                <th style="width: 12%">User Role</th>
+                                <th style="width: 7%">Status</th>
+                                <th style="width: 10%">Comments / Bugs Found</th>
                                 <th style="width: 5%"></th>
                             </tr>
                         </thead>
@@ -390,10 +401,11 @@
                     <table class="modal-grid-table">
                         <thead>
                             <tr>
-                                <th style="width: 15%">Module/Form</th>
-                                <th style="width: 23%">Test Scenario</th>
-                                <th style="width: 21%">Test Steps</th>
-                                <th style="width: 19%">Expected Result</th>
+                                <th style="width: 12%">Module/Form</th>
+                                <th style="width: 20%">Test Scenario</th>
+                                <th style="width: 18%">Test Steps</th>
+                                <th style="width: 16%">Expected Result</th>
+                                <th style="width: 12%">User Role</th>
                                 <th style="width: 10%">Status</th>
                                 <th style="width: 12%">Comments / Bugs Found</th>
                             </tr>
@@ -404,6 +416,14 @@
                                 <td><input type="text" id="tester-scenario" class="grid-input" placeholder="Verify profile update..." required></td>
                                 <td><textarea id="tester-steps" class="grid-textarea" placeholder="1. Tap profile picture..." required></textarea></td>
                                 <td><textarea id="tester-expected" class="grid-textarea" placeholder="System should display info..." required></textarea></td>
+                                <td>
+                                    <select id="tester-user" class="grid-select">
+                                        <option value="Admin">Admin</option>
+                                        <option value="Sub-Admin (Staff)">Sub-Admin (Staff)</option>
+                                        <option value="Sub-Admin (Vet)">Sub-Admin (Vet)</option>
+                                        <option value="Fur Parent" selected>Fur Parent</option>
+                                    </select>
+                                </td>
                                 <td>
                                     <select id="tester-status" class="grid-select status-pass">
                                         <option value="PASS">PASS</option>

@@ -1,9 +1,9 @@
 /**
  * NovaBug - Bug Management & Test Run Registry
- * Core Javascript Application Logic - Admin/Tester Roles & Auto-Numbering Edition
+ * Core Javascript Application Logic - Branding, Rebranding, Roles & User Fields Edition
  */
 
-// --- 18 Seed Test Cases from UCU Capstone 2 PDF ---
+// --- 18 Seed Test Cases from UCU Capstone 2 PDF with User Roles ---
 const SEED_DATA = [
     {
         id: "tc-001",
@@ -12,6 +12,7 @@ const SEED_DATA = [
         scenario: "Verify login with valid credentials",
         steps: "1. Enter valid username & password\n2. Click \"Login\"",
         expected: "User should successfully log in and go to dashboard",
+        user: "Admin",
         status: "PASS",
         comments: ""
     },
@@ -22,6 +23,7 @@ const SEED_DATA = [
         scenario: "Verify login with invalid credentials",
         steps: "1. Enter wrong username/password\n2. Click \"Login\"",
         expected: "System should display error message",
+        user: "Fur Parent",
         status: "FAIL",
         comments: "Message should say: \"Invalid Username or Password\""
     },
@@ -32,6 +34,7 @@ const SEED_DATA = [
         scenario: "User account creation",
         steps: "1. Tap sign up button\n2. Enter email, password and retype the password then tap proceed button.\n3. Enter personal information such as first name, last name, middle name, suffix, cellphone number, and gender. Tap proceed button.\n4. Enter user address such as region, province, city, barangay, postal code, and street. Then tap the proceed button.\n5. Enter user age; to enter user age, swipe left or right to choose the user's age. Then tap proceed button.\n6. Confirm information, if the user's information is correct tap complete signup button, if no tap back button to edit the wrong user information.",
         expected: "The system should add the new account to the database.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -42,6 +45,7 @@ const SEED_DATA = [
         scenario: "Overview of the app functionality",
         steps: "1. After login, swipe up and down to see the dashboard.",
         expected: "System should display the events overview, search your Fur Friend, Lost and Found, and the donate buttons.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -52,6 +56,7 @@ const SEED_DATA = [
         scenario: "Verify events viewer",
         steps: "1. Tap selected event\n2. Tap close button",
         expected: "System must display the created event from the sub-admin and admin side.",
+        user: "Admin",
         status: "PASS",
         comments: ""
     },
@@ -62,6 +67,7 @@ const SEED_DATA = [
         scenario: "Verify list of pets that are ready to adopt",
         steps: "1. Tap Fur Friends Button.\n2. Tap pet card\n3. Tap Adopt\n4. Check 'I accept all terms and conditions'\n5. Tap Proceed\n6. Tap Submit\n7. Tap Submit\n8. Tap pet card\n9. Tap 'No, Thanks'",
         expected: "The system should display the list of pets that are ready for adoption.",
+        user: "Fur Parent",
         status: "FAIL",
         comments: "Bugs in the suggested pets with disabilities, navigation issue"
     },
@@ -72,6 +78,7 @@ const SEED_DATA = [
         scenario: "Verify list of pets that are reported missing.",
         steps: "1. Tap Lost and Found button\n2. Tap selected pet\n3. Tap contact button\n4. Tap mark as found button\n5. Tap \"Yes, Mark as Found\"",
         expected: "The system should display the list of the missing pets. The system should display the information about the missing pet. The system should mark the pet as found.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -82,6 +89,7 @@ const SEED_DATA = [
         scenario: "Verify functionality for donation",
         steps: "1. Tap donate button",
         expected: "The system should display an image that contains a QR code for faster and seamless donation.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -92,6 +100,7 @@ const SEED_DATA = [
         scenario: "Verify list of pending adoption.",
         steps: "1. Tap drop down menu\n2. Tap pending\n3. Tap approved\n4. Tap declined\n5. Tap cancel\n6. Tap pet name",
         expected: "The system should display the list of pets that are currently pending, approved and declined. The system should display the pet's information and the adopter's information.",
+        user: "Sub-Admin (Staff)",
         status: "PASS",
         comments: ""
     },
@@ -102,6 +111,7 @@ const SEED_DATA = [
         scenario: "Verify viewing of user-submitted reports",
         steps: "1. Tap report a pet button\n2. Tap drop down\n3. Tap camera icon\n4. Tap take a photo\n5. Choose from gallery\n6. Take a photo\n7. Upload a photo\n8. Enter pet information\n9. Enter age\n10. Enter personality\n11. Enter contact number\n12. Other details of pet\n13. Health condition\n14. Add location\n15. Add date and time\n16. Tap proceed button\n17. Tap done button\n18. Tap 'My Reports'",
         expected: "The system should display two buttons (report a pet, and my reports). The system should add the reported pet on the database. The system should display the user submitted reports.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -112,6 +122,7 @@ const SEED_DATA = [
         scenario: "Verify the profile screen functionality",
         steps: "1. Tap profile picture\n2. Tap edit button\n3. Tap sign out button",
         expected: "System should display the personal information of the user including their name, sex, age, phone number, email, and their address. System should return to login screen.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -122,6 +133,7 @@ const SEED_DATA = [
         scenario: "Send plain text, image, and video to the chatbot, and an interactive dog that can give pet tips",
         steps: "1. Click the dog\n2. Send plain text\n3. Click suggested response\n4. Send image\n5. Send video.\n6. Tap thumbs up icon\n7. Tap thumbs down icon\n8. Tap positive feedback buttons\n9. Submit Feedback\n10. Tap negative feedback\n11. Submit Feedback",
         expected: "The system should display tips of the interactive dog, send text, image, suggested response and video. The system should have feedback based on the given response.",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -132,6 +144,7 @@ const SEED_DATA = [
         scenario: "Overview of list of adoption request of pets in Pending, Approved and Declined status",
         steps: "1. Tap Pending\n2. Tap Cancel\n3. Tap pet card\n4. Tap dropdown and tap Approved\n5. Tap Update\n6. Tap Add Icon\n7. Tap to add image or video\n8. Tap 'Post'\n9. Tap 'Cancel'",
         expected: "The system should display 'Pending', 'Approved' and 'Declined' pets and should display the information of the pet.",
+        user: "Sub-Admin (Staff)",
         status: "PASS",
         comments: ""
     },
@@ -142,6 +155,7 @@ const SEED_DATA = [
         scenario: "Verify the identity of Fur Parent to access adoption",
         steps: "1. Tap Not Verified card\n2. Tap List of IDs\n3. Upload front ID\n4. Upload back ID\n5. Upload face image",
         expected: "The system should upload files and transition correctly.",
+        user: "Fur Parent",
         status: "FAIL",
         comments: "Message should say; 'Invalid ID' and navigation issue"
     },
@@ -152,6 +166,7 @@ const SEED_DATA = [
         scenario: "Overview of list of notifications",
         steps: "1. Tap bell icon\n2. Tap Adoption request notification\n3. Tap report notification\n4. Tap donation notification",
         expected: "The system should display notifications and when if clicked, it should navigate to their destination.",
+        user: "Fur Parent",
         status: "FAIL",
         comments: "Message should say: 'Temporary Ban'"
     },
@@ -162,6 +177,7 @@ const SEED_DATA = [
         scenario: "Scan the QR Code to show pet information",
         steps: "1. Tap QR floating button\n2. Scan Pet QR Code",
         expected: "The system should display pet information after successfully scanned the QR Code of the pet",
+        user: "Sub-Admin (Staff)",
         status: "FAIL",
         comments: "Message should say: 'Failed to scan pet. Pet not found.'"
     },
@@ -172,6 +188,7 @@ const SEED_DATA = [
         scenario: "Overview of listed posts of the shelter, adoption and others.",
         steps: "1. Tap Shelter Projects\n2. Tap post",
         expected: "The system should display posts of the shelter",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     },
@@ -182,6 +199,7 @@ const SEED_DATA = [
         scenario: "Overview of listed posts of the fur parent's adoption updates",
         steps: "1. Tap Adoption Journey\n2. Tap Add button\n3. Tap 'Add Image or Video'\n4. Tap 'Post'",
         expected: "The system should display fur parent's adoption updates",
+        user: "Fur Parent",
         status: "PASS",
         comments: ""
     }
@@ -296,6 +314,7 @@ class App {
         this.testerScenario = document.getElementById('tester-scenario');
         this.testerSteps = document.getElementById('tester-steps');
         this.testerExpected = document.getElementById('tester-expected');
+        this.testerUser = document.getElementById('tester-user');
         this.testerStatus = document.getElementById('tester-status');
         this.testerComments = document.getElementById('tester-comments');
         this.testerAddCloseBtn = document.getElementById('tester-add-close-btn');
@@ -315,6 +334,7 @@ class App {
         this.searchInput = document.getElementById('search-input');
         this.filterModule = document.getElementById('filter-module');
         this.filterStatus = document.getElementById('filter-status');
+        this.filterUser = document.getElementById('filter-user');
         this.sortOrder = document.getElementById('sort-order');
         
         // Dashboard Stats
@@ -613,6 +633,7 @@ class App {
         this.searchInput.addEventListener('input', () => this.render());
         this.filterModule.addEventListener('change', () => this.render());
         this.filterStatus.addEventListener('change', () => this.render());
+        this.filterUser.addEventListener('change', () => this.render());
         this.sortOrder.addEventListener('change', () => this.render());
 
         // Data actions dropdown toggle
@@ -693,6 +714,7 @@ class App {
 
         const statusVal = log.status || 'PASS';
         const statusClass = statusVal === 'FAIL' ? 'status-fail' : 'status-pass';
+        const userVal = log.user || 'Fur Parent';
 
         tr.innerHTML = `
             <td class="tc-id-cell">${tcId}</td>
@@ -700,6 +722,14 @@ class App {
             <td><input type="text" class="grid-input row-scenario" value="${escapeHTML(log.scenario || '')}" placeholder="Verify login behaves..." required></td>
             <td><textarea class="grid-textarea row-steps" placeholder="1. Go to page..." required>${escapeHTML(log.steps || '')}</textarea></td>
             <td><textarea class="grid-textarea row-expected" placeholder="Dashboard page loads..." required>${escapeHTML(log.expected || '')}</textarea></td>
+            <td>
+                <select class="grid-select row-user">
+                    <option value="Admin" ${userVal === 'Admin' ? 'selected' : ''}>Admin</option>
+                    <option value="Sub-Admin (Staff)" ${userVal === 'Sub-Admin (Staff)' ? 'selected' : ''}>Sub-Admin (Staff)</option>
+                    <option value="Sub-Admin (Vet)" ${userVal === 'Sub-Admin (Vet)' ? 'selected' : ''}>Sub-Admin (Vet)</option>
+                    <option value="Fur Parent" ${userVal === 'Fur Parent' ? 'selected' : ''}>Fur Parent</option>
+                </select>
+            </td>
             <td>
                 <select class="grid-select row-status ${statusClass}">
                     <option value="PASS" ${statusVal === 'PASS' ? 'selected' : ''}>PASS</option>
@@ -729,6 +759,10 @@ class App {
             }
             this.syncSpreadsheetToStore();
         });
+
+        // Trigger real-time save on user role select change
+        const userSelectEl = tr.querySelector('.row-user');
+        userSelectEl.addEventListener('change', () => this.syncSpreadsheetToStore());
 
         // Bind auto numbering to Steps textarea in editable spreadsheet row
         const stepsTextarea = tr.querySelector('.row-steps');
@@ -768,6 +802,7 @@ class App {
             const scenario = row.querySelector('.row-scenario').value.trim();
             const steps = row.querySelector('.row-steps').value.trim();
             const expected = row.querySelector('.row-expected').value.trim();
+            const user = row.querySelector('.row-user').value;
             const status = row.querySelector('.row-status').value;
             const comments = row.querySelector('.row-comments').value.trim();
 
@@ -791,6 +826,7 @@ class App {
                     scenario,
                     steps,
                     expected,
+                    user,
                     status,
                     comments
                 });
@@ -891,6 +927,7 @@ class App {
         const scenario = this.testerScenario.value.trim();
         const steps = this.testerSteps.value.trim();
         const expected = this.testerExpected.value.trim();
+        const user = this.testerUser.value;
         const status = this.testerStatus.value;
         const comments = this.testerComments.value.trim();
 
@@ -917,6 +954,7 @@ class App {
             scenario,
             steps,
             expected,
+            user,
             status,
             comments
         };
@@ -989,6 +1027,7 @@ class App {
                     <td class="col-scen">${escapeHTML(log.scenario)}</td>
                     <td class="col-steps">${escapeHTML(log.steps).replace(/\n/g, '<br>')}</td>
                     <td class="col-exp">${escapeHTML(log.expected).replace(/\n/g, '<br>')}</td>
+                    <td class="col-user">${escapeHTML(log.user || 'Fur Parent')}</td>
                     <td class="col-status">${statusDisplay}</td>
                     <td class="col-comments">${log.comments ? escapeHTML(log.comments).replace(/\n/g, '<br>') : ''}</td>
                 </tr>
@@ -1068,6 +1107,7 @@ class App {
                             <th class="col-scen">Test Scenario</th>
                             <th class="col-steps">Test Steps</th>
                             <th class="col-exp">Expected Result</th>
+                            <th class="col-user">User Role</th>
                             <th class="col-status">Status<br>(PASS/FAIL)</th>
                             <th class="col-comments">Comments / Bugs Found</th>
                         </tr>
@@ -1169,7 +1209,7 @@ class App {
             return;
         }
 
-        const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "Status", "Comments"];
+        const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "User Role", "Status", "Comments"];
         
         const escapeCSV = (val) => {
             if (val === null || val === undefined) return '';
@@ -1186,6 +1226,7 @@ class App {
             log.scenario,
             log.steps,
             log.expected,
+            log.user || "Fur Parent",
             log.status,
             log.comments || ""
         ]);
@@ -1196,7 +1237,7 @@ class App {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `novabug_export_${Date.now()}.csv`);
+        link.setAttribute("download", `apawtment_export_${Date.now()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1212,7 +1253,7 @@ class App {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.logs, null, 2));
         const link = document.createElement("a");
         link.setAttribute("href", dataStr);
-        link.setAttribute("download", `novabug_export_${Date.now()}.json`);
+        link.setAttribute("download", `apawtment_export_${Date.now()}.json`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1251,6 +1292,7 @@ class App {
                     imported.forEach(item => {
                         item.id = 'tc-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
                         if (!item.datetime) item.datetime = this.getLocalDateString();
+                        if (!item.user) item.user = 'Fur Parent';
                         existing.push(item);
                     });
                     BugStore.saveAll(existing);
@@ -1260,6 +1302,7 @@ class App {
                     imported.forEach((item, idx) => {
                         if (!item.id) item.id = 'tc-' + Date.now() + '-' + idx;
                         if (!item.datetime) item.datetime = this.getLocalDateString();
+                        if (!item.user) item.user = 'Fur Parent';
                     });
                     BugStore.saveAll(imported);
                 }
@@ -1368,6 +1411,7 @@ class App {
         const searchQuery = this.searchInput.value.toLowerCase().trim();
         const selectedMod = this.filterModule.value;
         const selectedStat = this.filterStatus.value;
+        const selectedUser = this.filterUser.value;
         const sortBy = this.sortOrder.value;
 
         // Apply filters with defensive string casting
@@ -1376,6 +1420,7 @@ class App {
             const scenarioText = String(log.scenario || '').toLowerCase();
             const stepsText = String(log.steps || '').toLowerCase();
             const expectedText = String(log.expected || '').toLowerCase();
+            const userText = String(log.user || 'Fur Parent').toLowerCase();
             const commentsText = String(log.comments || '').toLowerCase();
 
             const matchesSearch = !searchQuery || 
@@ -1383,12 +1428,14 @@ class App {
                 scenarioText.includes(searchQuery) ||
                 stepsText.includes(searchQuery) ||
                 expectedText.includes(searchQuery) ||
+                userText.includes(searchQuery) ||
                 commentsText.includes(searchQuery);
 
             const matchesModule = selectedMod === 'all' || log.module === selectedMod;
             const matchesStatus = selectedStat === 'all' || log.status === selectedStat;
+            const matchesUser = selectedUser === 'all' || (log.user || 'Fur Parent') === selectedUser;
 
-            return matchesSearch && matchesModule && matchesStatus;
+            return matchesSearch && matchesModule && matchesStatus && matchesUser;
         });
 
         // Apply sort
@@ -1486,6 +1533,7 @@ class App {
                             ${this.highlightText(log.expected || '', searchQuery)}
                         </div>
                     </td>
+                    <td style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
                     <td style="text-align:center; vertical-align:middle;">
                         ${statusCellHTML}
                     </td>
