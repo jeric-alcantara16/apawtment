@@ -6,9 +6,14 @@
 const SUPABASE_URL = 'https://muyubeutdcrnjzdaacsh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11eXViZXV0ZGNybmp6ZGFhY3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNDcyMTUsImV4cCI6MjEwMDcyMzIxNX0.h0nZ4njrkKLdooUS8-ZwZwTfsuFVYbCNy1Kr2008ZTI';
 
-const supabase = window.supabase
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+function getSupabase() {
+    if (window._supabaseInstance) return window._supabaseInstance;
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        window._supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        return window._supabaseInstance;
+    }
+    return null;
+}
 
 function dbToApi(row) {
     return {
@@ -56,19 +61,21 @@ const defaultSeedLogs = [
 
 class BugStore {
     static async getAll() {
-        if (!supabase) throw new Error("Supabase client is not loaded");
-        const { data, error } = await supabase
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
+        const { data, error } = await client
             .from('test_logs')
             .select('*')
             .order('datetime', { ascending: true });
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return data.map(dbToApi);
     }
 
     static async saveAll(logs) {
-        if (!supabase) throw new Error("Supabase client is not loaded");
-        const { error: delError } = await supabase.from('test_logs').delete().neq('test_logs_id', '____dummy____');
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
+        const { error: delError } = await client.from('test_logs').delete().neq('test_logs_id', '____dummy____');
         if (delError) console.warn("Delete warning:", delError);
 
         const rows = logs.map(l => ({
@@ -83,13 +90,14 @@ class BugStore {
             comments: l.comments || ''
         }));
 
-        const { data, error } = await supabase.from('test_logs').insert(rows).select();
-        if (error) throw error;
+        const { data, error } = await client.from('test_logs').insert(rows).select();
+        if (error) throw new Error(error.message);
         return data.map(dbToApi);
     }
 
     static async add(log) {
-        if (!supabase) throw new Error("Supabase client is not loaded");
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
         const row = {
             test_logs_id: log.id || generateId(),
             datetime: apiDatetimeToDb(log.datetime),
@@ -102,13 +110,14 @@ class BugStore {
             comments: log.comments || ''
         };
 
-        const { data, error } = await supabase.from('test_logs').insert([row]).select();
-        if (error) throw error;
+        const { data, error } = await client.from('test_logs').insert([row]).select();
+        if (error) throw new Error(error.message);
         return dbToApi(data[0]);
     }
 
     static async update(id, log) {
-        if (!supabase) throw new Error("Supabase client is not loaded");
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
         const row = {
             datetime: apiDatetimeToDb(log.datetime),
             module: log.module,
@@ -120,36 +129,38 @@ class BugStore {
             comments: log.comments || ''
         };
 
-        const { data, error } = await supabase
+        const { data, error } = await client
             .from('test_logs')
             .update(row)
             .eq('test_logs_id', id)
             .select();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return dbToApi(data[0]);
     }
 
     static async updateStatus(id, status) {
-        if (!supabase) throw new Error("Supabase client is not loaded");
-        const { data, error } = await supabase
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
+        const { data, error } = await client
             .from('test_logs')
             .update({ status })
             .eq('test_logs_id', id)
             .select();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return dbToApi(data[0]);
     }
 
     static async delete(id) {
-        if (!supabase) throw new Error("Supabase client is not loaded");
-        const { error } = await supabase
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
+        const { error } = await client
             .from('test_logs')
             .delete()
             .eq('test_logs_id', id);
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
     }
 
     static async reset() {
@@ -159,8 +170,9 @@ class BugStore {
 
 class PrintSettingsStore {
     static async get() {
-        if (!supabase) throw new Error("Supabase client is not loaded");
-        const { data, error } = await supabase
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
+        const { data, error } = await client
             .from('print_settings')
             .select('*')
             .eq('print_settings_id', 1)
@@ -192,7 +204,8 @@ class PrintSettingsStore {
     }
 
     static async save(settings) {
-        if (!supabase) throw new Error("Supabase client is not loaded");
+        const client = getSupabase();
+        if (!client) throw new Error("Supabase SDK script is not loaded");
         const row = {
             print_settings_id: 1,
             group_name: settings.groupName,
@@ -205,12 +218,12 @@ class PrintSettingsStore {
             checked_adviser: settings.checkedAdviser
         };
 
-        const { data, error } = await supabase
+        const { data, error } = await client
             .from('print_settings')
             .upsert([row])
             .select();
 
-        if (error) throw error;
+        if (error) throw new Error(error.message);
         return settings;
     }
 }

@@ -119,8 +119,8 @@ class App {
             }
             this.printSettings = await PrintSettingsStore.get();
         } catch (err) {
-            console.error("Failed to load initial data from MySQL:", err);
-            this.showToast("Connection to MySQL API failed", "error");
+            console.error("Failed to load initial data from database:", err);
+            this.showToast(`Connection to database failed: ${err.message || err}`, "error");
         }
 
         // Retrieve persistent admin login status
