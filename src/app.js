@@ -119,9 +119,6 @@ class App {
     async init() {
         try {
             this.logs = await BugStore.getAll();
-            if (this.logs.length === 0) {
-                this.logs = await BugStore.reset();
-            }
             this.printSettings = await PrintSettingsStore.get();
         } catch (err) {
             // Silently fall back to empty state — no error shown to user
