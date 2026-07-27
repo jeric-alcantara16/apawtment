@@ -721,6 +721,7 @@ select:focus {
     position: sticky;
     top: 0;
     z-index: 10;
+    text-align: left;
 }
 
 .modal-grid-table td {
