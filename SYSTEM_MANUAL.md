@@ -47,13 +47,9 @@ The top header bar contains key quick-action controls:
 * **Location**: Top header bar (Sun/Moon icon).
 * **Function**: Instantly switches between **Dark Mode** (default sleek dark UI) and **Light Mode** (high-contrast light UI). Your preference is saved automatically in browser storage.
 
-### ⚙️ Print Settings Configuration (`btn-open-print-settings`)
-* **Location**: Top header bar (Gear icon).
-* **Function**: Opens the Capstone QA Testing Form configuration modal to update document title, group name, adviser name, list of student researchers, and signature names before printing.
-
-### 🖨️ Print Testing Form (`btn-trigger-print`)
-* **Location**: Top header bar ("Print Testing Form" button).
-* **Function**: Generates and formats the test logs into the official UCU Capstone QA Testing Form layout and opens the browser print dialog to save as PDF or print on paper.
+### ❓ System Manual Button (`btn-open-manual`)
+* **Location**: Top header bar (Question mark icon).
+* **Function**: Opens the in-app interactive System Manual & Step-by-Step Procedure popup window anytime.
 
 ### ➕ Add Test Case (`btn-tester-add`)
 * **Location**: Top header bar ("Add Test Case" button).
