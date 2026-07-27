@@ -1,4 +1,4 @@
-import { BugStore, PrintSettingsStore } from './apistores.js?v=2';
+import { BugStore, PrintSettingsStore } from './apistores.js?v=4';
 
 /**
  * NovaBug - Bug Management & Test Run Registry
