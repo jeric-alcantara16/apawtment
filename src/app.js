@@ -310,7 +310,6 @@ class App {
         this.btnTesterAdd = document.getElementById('btn-tester-add');
         this.testerAddModal = document.getElementById('tester-add-modal');
         this.testerAddForm = document.getElementById('tester-add-form');
-        this.testerDatetime = document.getElementById('tester-datetime');
         this.testerModule = document.getElementById('tester-module');
         this.testerScenario = document.getElementById('tester-scenario');
         this.testerSteps = document.getElementById('tester-steps');
@@ -548,7 +547,6 @@ class App {
         // Tester-Only Single Add Modal Controls
         this.btnTesterAdd.addEventListener('click', () => {
             this.testerAddForm.reset();
-            this.testerDatetime.value = this.getLocalDateString();
             this.testerStatus.className = 'grid-select status-pass';
             
             // Remove error glow borders
@@ -596,7 +594,6 @@ class App {
             } else {
                 // Open the single add modal for testers
                 this.testerAddForm.reset();
-                this.testerDatetime.value = this.getLocalDateString();
                 this.testerStatus.className = 'grid-select status-pass';
                 
                 const row = this.testerAddModal.querySelector('.modal-row');
@@ -721,7 +718,7 @@ class App {
 
         tr.innerHTML = `
             <td class="tc-id-cell">${tcId}</td>
-            <td><input type="datetime-local" class="grid-input row-datetime" value="${log.datetime || this.getLocalDateString()}" required></td>
+            <td class="row-datetime-cell" data-val="${log.datetime || this.getLocalDateString()}" style="font-size: 0.8rem; text-align: center; color: var(--text-secondary); white-space: nowrap; padding: 0.4rem 0.6rem;">${escapeHTML(formatDateTime(log.datetime || this.getLocalDateString()))}</td>
             <td><input type="text" class="grid-input row-module" value="${escapeHTML(log.module || '')}" placeholder="e.g. Auth, Payments" required></td>
             <td><input type="text" class="grid-input row-scenario" value="${escapeHTML(log.scenario || '')}" placeholder="Verify login behaves..." required></td>
             <td><textarea class="grid-textarea row-steps" placeholder="1. Go to page..." required>${escapeHTML(log.steps || '')}</textarea></td>
@@ -819,7 +816,7 @@ class App {
                     row.setAttribute('data-id', id);
                 }
 
-                const datetime = row.querySelector('.row-datetime').value;
+                const datetime = row.querySelector('.row-datetime-cell').getAttribute('data-val');
 
                 updatedLogs.push({
                     id,
@@ -924,7 +921,7 @@ class App {
     }
 
     handleTesterAddSubmit() {
-        const datetime = this.testerDatetime.value;
+        const datetime = this.getLocalDateString(); // Auto GMT+8 time
         const module = this.testerModule.value.trim();
         const scenario = this.testerScenario.value.trim();
         const steps = this.testerSteps.value.trim();
@@ -935,7 +932,7 @@ class App {
 
         const row = this.testerAddModal.querySelector('.modal-row');
 
-        if (!datetime || !module || !scenario || !steps || !expected) {
+        if (!module || !scenario || !steps || !expected) {
             this.showToast("All fields (except comments) are required.", "error");
             if (row) {
                 row.style.outline = '1.5px solid var(--fail-color)';
@@ -1167,11 +1164,6 @@ class App {
     }
 
     updateLogStatus(logId, newStatus) {
-        if (!this.isAdmin) {
-            this.showToast("Admin privilege required to update test status.", "error");
-            return;
-        }
-
         const logs = BugStore.getAll();
         const updated = logs.map(item => {
             if (item.id === logId) {
@@ -1493,23 +1485,14 @@ class App {
                 const expectedExpanded = this.expandedCellIds.has(expectedCellId);
                 const commentsExpanded = this.expandedCellIds.has(commentsCellId);
 
-                // Build status cell: dropdown for admin, badge for user
-                let statusCellHTML = '';
-                if (this.isAdmin) {
-                    const selectClass = log.status === 'FAIL' ? 'status-fail' : 'status-pass';
-                    statusCellHTML = `
-                        <select class="dashboard-status-select ${selectClass}" data-id="${log.id}">
-                            <option value="PASS" ${log.status === 'PASS' ? 'selected' : ''}>PASS</option>
-                            <option value="FAIL" ${log.status === 'FAIL' ? 'selected' : ''}>FAIL</option>
-                        </select>
-                    `;
-                } else {
-                    statusCellHTML = `
-                        <span class="status-badge ${log.status === 'PASS' ? 'pass' : 'fail'}">
-                            ${log.status === 'PASS' ? 'PASS' : 'FAIL'}
-                        </span>
-                    `;
-                }
+                // Build status cell: dropdown for all users (Admin & Tester)
+                const selectClass = log.status === 'FAIL' ? 'status-fail' : 'status-pass';
+                const statusCellHTML = `
+                    <select class="dashboard-status-select ${selectClass}" data-id="${log.id}">
+                        <option value="PASS" ${log.status === 'PASS' ? 'selected' : ''}>PASS</option>
+                        <option value="FAIL" ${log.status === 'FAIL' ? 'selected' : ''}>FAIL</option>
+                    </select>
+                `;
 
                 // Actions cell (only for Admins)
                 const actionsCellHTML = this.isAdmin ? `
@@ -1559,14 +1542,16 @@ class App {
                     });
                 });
 
-                // Attach inline status updater event listener and click bindings in Admin mode
+                // Attach inline status updater event listener for all users (Admin & Tester)
+                const statusSelectEl = tr.querySelector('.dashboard-status-select');
+                statusSelectEl.addEventListener('change', (e) => {
+                    const logId = e.target.getAttribute('data-id');
+                    const newStatus = e.target.value;
+                    this.updateLogStatus(logId, newStatus);
+                });
+
+                // Attach click bindings in Admin mode
                 if (this.isAdmin) {
-                    const statusSelectEl = tr.querySelector('.dashboard-status-select');
-                    statusSelectEl.addEventListener('change', (e) => {
-                        const logId = e.target.getAttribute('data-id');
-                        const newStatus = e.target.value;
-                        this.updateLogStatus(logId, newStatus);
-                    });
 
                     // Row action edit click handler
                     tr.querySelector('.btn-edit-row').addEventListener('click', (e) => {
