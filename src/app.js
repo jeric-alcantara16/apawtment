@@ -201,13 +201,21 @@ const DEFAULT_PRINT_SETTINGS = {
 
 // --- Local Storage Management Store ---
 class BugStore {
-    static STORAGE_KEY = 'novabug_test_logs';
+    static STORAGE_KEY = 'apawtment_test_logs';
 
     static getAll() {
-        const data = localStorage.getItem(this.STORAGE_KEY);
+        let data = localStorage.getItem(this.STORAGE_KEY);
         if (!data) {
-            this.saveAll(SEED_DATA);
-            return SEED_DATA;
+            // Migrate from old key to preserve user test history
+            const oldData = localStorage.getItem('novabug_test_logs');
+            if (oldData) {
+                localStorage.setItem(this.STORAGE_KEY, oldData);
+                localStorage.removeItem('novabug_test_logs');
+                data = oldData;
+            } else {
+                this.saveAll(SEED_DATA);
+                return SEED_DATA;
+            }
         }
         try {
             return JSON.parse(data);
@@ -230,13 +238,21 @@ class BugStore {
 
 // --- Print Settings Storage ---
 class PrintSettingsStore {
-    static STORAGE_KEY = 'novabug_print_settings';
+    static STORAGE_KEY = 'apawtment_print_settings';
 
     static get() {
-        const data = localStorage.getItem(this.STORAGE_KEY);
+        let data = localStorage.getItem(this.STORAGE_KEY);
         if (!data) {
-            this.save(DEFAULT_PRINT_SETTINGS);
-            return DEFAULT_PRINT_SETTINGS;
+            // Migrate from old key to preserve print signature values
+            const oldData = localStorage.getItem('novabug_print_settings');
+            if (oldData) {
+                localStorage.setItem(this.STORAGE_KEY, oldData);
+                localStorage.removeItem('novabug_print_settings');
+                data = oldData;
+            } else {
+                this.save(DEFAULT_PRINT_SETTINGS);
+                return DEFAULT_PRINT_SETTINGS;
+            }
         }
         try {
             return JSON.parse(data);
@@ -341,7 +357,7 @@ class App {
         this.printSettings = PrintSettingsStore.get();
         
         // Retrieve persistent admin login status
-        this.isAdmin = sessionStorage.getItem('novabug_admin') === 'true';
+        this.isAdmin = sessionStorage.getItem('apawtment_admin') === 'true' || sessionStorage.getItem('novabug_admin') === 'true';
 
         this.initTheme();
         this.bindEvents();
@@ -470,7 +486,8 @@ class App {
         this.btnAdminToggle.addEventListener('click', () => {
             if (this.isAdmin) {
                 this.isAdmin = false;
-                sessionStorage.setItem('novabug_admin', 'false');
+                sessionStorage.setItem('apawtment_admin', 'false');
+                sessionStorage.removeItem('novabug_admin');
                 this.syncAdminUI();
                 this.render();
                 this.showToast("Logged out of Admin Mode", "info");
@@ -487,7 +504,7 @@ class App {
             const password = this.adminPasswordInput.value;
             if (password === 'admin123') {
                 this.isAdmin = true;
-                sessionStorage.setItem('novabug_admin', 'true');
+                sessionStorage.setItem('apawtment_admin', 'true');
                 this.adminLoginModal.classList.add('hidden');
                 this.syncAdminUI();
                 this.render();
