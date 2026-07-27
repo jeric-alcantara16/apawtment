@@ -3,6 +3,9 @@
   publish = "."
   functions = "netlify/functions"
 
+[functions]
+  included_files = ["src/**"]
+
 [build.environment]
   DB_HOST = "bxvl0imfammnkqd6ju3q-mysql.services.clever-cloud.com"
   DB_PORT = "3306"
