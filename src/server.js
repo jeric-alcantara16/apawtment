@@ -9,6 +9,18 @@ const printSettingsRouter = require('./printsettings');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Normalize URL paths for Netlify Serverless Functions and local Express
+app.use((req, res, next) => {
+    if (req.url.startsWith('/.netlify/functions/api')) {
+        req.url = req.url.replace('/.netlify/functions/api', '');
+        if (!req.url.startsWith('/')) req.url = '/' + req.url;
+    }
+    if (req.url.startsWith('/test-logs') || req.url.startsWith('/print-settings')) {
+        req.url = '/api' + req.url;
+    }
+    next();
+});
+
 const allowedOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
     : [];
