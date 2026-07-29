@@ -132,10 +132,9 @@ class App {
     }
 
     async loadDataWithRetry() {
-        const MAX_RETRIES = 5;
-        const RETRY_DELAY_MS = 2000;
-
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        let attempt = 0;
+        while (true) {
+            attempt++;
             try {
                 const loadedLogs = await BugStore.getAll();
                 const loadedSettings = await PrintSettingsStore.get();
@@ -146,17 +145,20 @@ class App {
                 this.updateModuleFilters();
                 this.render();
                 console.log(`[Init] Data loaded on attempt ${attempt}`);
-                return; // success — stop retrying
+                return; // success
             } catch (err) {
-                console.warn(`[Init] Attempt ${attempt} failed:`, err.message);
-                if (attempt < MAX_RETRIES) {
-                    await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+                console.warn(`[Init] Attempt ${attempt} failed — retrying in 5s:`, err.message);
+                // Show a visible loading message in the table while waiting
+                if (this.bugListContainer) {
+                    this.bugListContainer.innerHTML = `
+                        <div style="text-align:center;padding:2rem;opacity:0.6;">
+                            <div style="font-size:1.2rem;margin-bottom:.5rem;">⏳ Connecting to database…</div>
+                            <div style="font-size:.85rem;">Attempt ${attempt} — retrying in 5 seconds</div>
+                        </div>`;
                 }
+                await new Promise(r => setTimeout(r, 5000));
             }
         }
-        // All retries exhausted — render whatever we have
-        this.updateModuleFilters();
-        this.render();
     }
 
     initRealtimeSubscriptions() {
@@ -197,7 +199,7 @@ class App {
 
     async refreshDataFromStore(showToast = false) {
         try {
-            const freshLogs = await BugStore.getAll();
+            const freshLogs = await BugStore.getAllSafe();
             const freshSettings = await PrintSettingsStore.get();
 
             this.logs = Array.isArray(freshLogs) ? freshLogs : this.logs;

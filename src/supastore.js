@@ -71,19 +71,24 @@ const defaultSeedLogs = [
 // BugStore — CRUD for test_logs table
 // ─────────────────────────────────────────────
 class BugStore {
+    // Throws on Supabase error — used by init() so retry logic actually kicks in
     static async getAll() {
         const db = getSupabase();
+        const { data, error } = await db
+            .from('test_logs')
+            .select('*')
+            .order('datetime', { ascending: true });
+        if (error) throw new Error(`Supabase error: ${error.message}`);
+        const mapped = (data || []).map(dbToApi).filter(Boolean);
+        return mapped.length > 0 ? mapped : defaultSeedLogs;
+    }
+
+    // Safe version for polling — returns defaults on any error, never throws
+    static async getAllSafe() {
         try {
-            const { data, error } = await db
-                .from('test_logs')
-                .select('*')
-                .order('datetime', { ascending: true });
-            if (error) throw new Error(error.message);
-            const mapped = (data || []).map(dbToApi).filter(Boolean);
-            // If DB is empty, return seed data (do NOT auto-write to DB — avoid overwriting user data)
-            return mapped.length > 0 ? mapped : defaultSeedLogs;
+            return await BugStore.getAll();
         } catch (err) {
-            console.warn('Supabase test_logs fetch warning, returning default seed logs:', err);
+            console.warn('[BugStore] getAllSafe fallback:', err.message);
             return defaultSeedLogs;
         }
     }
