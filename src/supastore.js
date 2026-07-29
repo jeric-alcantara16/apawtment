@@ -223,4 +223,42 @@ class PrintSettingsStore {
     }
 }
 
-export { BugStore, PrintSettingsStore };
+// ─────────────────────────────────────────────
+// Real-time Subscriptions using Supabase WebSockets
+// ─────────────────────────────────────────────
+function subscribeToBugStore(onDataChange) {
+    try {
+        const db = getSupabase();
+        const channel = db.channel('realtime_test_logs')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'test_logs' }, (payload) => {
+                if (typeof onDataChange === 'function') {
+                    onDataChange(payload);
+                }
+            })
+            .subscribe();
+        return channel;
+    } catch (err) {
+        console.warn('Realtime subscription to test_logs failed:', err);
+        return null;
+    }
+}
+
+function subscribeToPrintSettings(onDataChange) {
+    try {
+        const db = getSupabase();
+        const channel = db.channel('realtime_print_settings')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'print_settings' }, (payload) => {
+                if (typeof onDataChange === 'function') {
+                    onDataChange(payload);
+                }
+            })
+            .subscribe();
+        return channel;
+    } catch (err) {
+        console.warn('Realtime subscription to print_settings failed:', err);
+        return null;
+    }
+}
+
+export { BugStore, PrintSettingsStore, subscribeToBugStore, subscribeToPrintSettings };
+

@@ -1,4 +1,4 @@
-import { BugStore, PrintSettingsStore } from './supastore.js';
+import { BugStore, PrintSettingsStore, subscribeToBugStore, subscribeToPrintSettings } from './supastore.js';
 
 /**
  * NovaBug - Bug Management & Test Run Registry
@@ -135,7 +135,50 @@ class App {
         this.syncAdminUI();
         this.updateModuleFilters();
         this.render();
+
+        // Initialize Realtime WebSockets Listener
+        this.initRealtimeSubscriptions();
     }
+
+    initRealtimeSubscriptions() {
+        subscribeToBugStore(async () => {
+            await this.refreshDataFromStore(false);
+        });
+
+        subscribeToPrintSettings(async () => {
+            try {
+                this.printSettings = await PrintSettingsStore.get();
+            } catch (err) {
+                console.warn('Failed to refresh print settings on realtime update:', err);
+            }
+        });
+    }
+
+    async refreshDataFromStore(showToast = false) {
+        try {
+            const freshLogs = await BugStore.getAll();
+            this.logs = freshLogs;
+            const freshSettings = await PrintSettingsStore.get();
+            if (freshSettings) this.printSettings = freshSettings;
+
+            this.updateModuleFilters();
+
+            // Avoid re-rendering open modal if admin user is actively typing in an input
+            const isModalOpen = this.bugModal && !this.bugModal.classList.contains('hidden');
+            const isUserTypingInModal = isModalOpen && this.bugModal.contains(document.activeElement);
+
+            if (!isUserTypingInModal) {
+                this.render();
+            }
+
+            if (showToast) {
+                this.showToast("Data synchronized in real time", "info");
+            }
+        } catch (err) {
+            console.warn('Realtime refresh error:', err);
+        }
+    }
+
 
     initTheme() {
         const savedTheme = localStorage.getItem('novabug_theme') || 'dark';
@@ -253,14 +296,23 @@ class App {
     }
 
     bindEvents() {
+        // Auto-sync real-time data when visiting site, returning to tab, window focus, or network reconnect
+        window.addEventListener('focus', () => this.refreshDataFromStore());
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.refreshDataFromStore();
+            }
+        });
+        window.addEventListener('online', () => this.refreshDataFromStore(true));
+
         // Admin Access Toggle Click
-        this.btnAdminToggle.addEventListener('click', () => {
+        this.btnAdminToggle.addEventListener('click', async () => {
             if (this.isAdmin) {
                 this.isAdmin = false;
                 sessionStorage.setItem('apawtment_admin', 'false');
                 sessionStorage.removeItem('novabug_admin');
                 this.syncAdminUI();
-                this.render();
+                await this.refreshDataFromStore();
                 this.showToast("Logged out of Admin Mode", "info");
             } else {
                 this.adminPasswordInput.value = '';
@@ -270,7 +322,7 @@ class App {
         });
 
         // Admin login form controls
-        this.adminLoginForm.addEventListener('submit', (e) => {
+        this.adminLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const password = this.adminPasswordInput.value;
             if (password === 'admin123') {
@@ -278,12 +330,13 @@ class App {
                 sessionStorage.setItem('apawtment_admin', 'true');
                 this.adminLoginModal.classList.add('hidden');
                 this.syncAdminUI();
-                this.render();
+                await this.refreshDataFromStore();
                 this.showToast("Access granted. Admin mode active.", "success");
             } else {
                 this.showToast("Invalid admin credentials", "error");
             }
         });
+
 
         this.adminLoginCloseBtn.addEventListener('click', () => {
             this.adminLoginModal.classList.add('hidden');
@@ -453,10 +506,16 @@ class App {
     }
 
     // --- Modal Table Sheet Render Engine ---
-    openModal() {
+    async openModal() {
         if (!this.isAdmin) {
             this.showToast("Permission denied. Admin rights required.", "error");
             return;
+        }
+
+        try {
+            this.logs = await BugStore.getAll();
+        } catch (err) {
+            console.warn("Could not fetch latest logs before opening modal:", err);
         }
 
         this.modalTableBody.innerHTML = '';
@@ -472,6 +531,7 @@ class App {
         this.bugModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
+
 
     closeModal() {
         this.bugModal.classList.add('hidden');

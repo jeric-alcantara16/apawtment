@@ -70,3 +70,8 @@ VALUES
     ('tc-017', '2026-03-23 16:30:00+00', 'Shelter Projects', 'Overview of listed posts of the shelter, adoption and others.', '1. Tap Shelter Projects\n2. Tap post', 'The system should display posts of the shelter', 'Fur Parent', 'PASS', ''),
     ('tc-018', '2026-03-23 17:00:00+00', 'Adoption Journey', 'Overview of listed posts of the fur parent''s adoption updates', '1. Tap Adoption Journey\n2. Tap Add button\n3. Tap ''Add Image or Video''\n4. Tap ''Post''', 'The system should display fur parent''s adoption updates', 'Fur Parent', 'PASS', '')
 ON CONFLICT (test_logs_id) DO NOTHING;
+
+-- 6. Enable Realtime Replication for tables
+ALTER PUBLICATION supabase_realtime ADD TABLE public.test_logs;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.print_settings;
+
