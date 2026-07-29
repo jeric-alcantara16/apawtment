@@ -166,7 +166,7 @@ class App {
             if (document.visibilityState === 'visible') {
                 this.refreshDataFromStore(false);
             }
-        }, 3000);
+        }, 5000);
     }
 
     async refreshDataFromStore(showToast = false) {
