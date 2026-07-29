@@ -161,13 +161,15 @@ class App {
 
     startRealtimePolling() {
         if (this._pollInterval) clearInterval(this._pollInterval);
-        // Poll every 3 seconds — guarantees near-realtime updates regardless of WebSocket status
+        // Fire immediately on page load/refresh, then every 5 seconds
+        this.refreshDataFromStore(false);
         this._pollInterval = setInterval(() => {
             if (document.visibilityState === 'visible') {
                 this.refreshDataFromStore(false);
             }
         }, 5000);
     }
+
 
     async refreshDataFromStore(showToast = false) {
         try {
