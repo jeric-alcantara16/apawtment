@@ -118,14 +118,14 @@ class App {
 
     async init() {
         try {
-            this.logs = await BugStore.getAll();
+            const loadedLogs = await BugStore.getAll();
+            this.logs = Array.isArray(loadedLogs) ? loadedLogs : [];
             this.printSettings = await PrintSettingsStore.get();
         } catch (err) {
-            // Silently fall back to empty state — no error shown to user
-            console.warn('Database unavailable, running with empty data:', err.message);
+            console.warn('Database init warning:', err.message);
             if (!this.logs) this.logs = [];
-            if (!this.printSettings) this.printSettings = null;
         }
+
 
         // Retrieve persistent admin login status
         this.isAdmin = sessionStorage.getItem('apawtment_admin') === 'true' || sessionStorage.getItem('novabug_admin') === 'true';

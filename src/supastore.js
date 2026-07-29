@@ -20,15 +20,16 @@ function getSupabase() {
 
 // --- Helper: map DB row -> app object ---
 function dbToApi(row) {
+    if (!row) return null;
     return {
         id: row.test_logs_id,
         datetime: row.datetime ? row.datetime.slice(0, 16) : '',
-        module: row.module,
-        scenario: row.scenario,
-        steps: row.steps,
-        expected: row.expected,
-        user: row.user_role,
-        status: row.status,
+        module: row.module || '',
+        scenario: row.scenario || '',
+        steps: row.steps || '',
+        expected: row.expected || '',
+        user: row.user_role || 'Fur Parent',
+        status: row.status || 'PASS',
         comments: row.comments || ''
     };
 }
@@ -72,14 +73,25 @@ const defaultSeedLogs = [
 class BugStore {
     static async getAll() {
         const db = getSupabase();
-        if (!db) return [];
-        const { data, error } = await db
-            .from('test_logs')
-            .select('*')
-            .order('datetime', { ascending: true });
-        if (error) throw new Error(error.message);
-        return (data || []).map(dbToApi);
+        if (!db) return defaultSeedLogs;
+        try {
+            const { data, error } = await db
+                .from('test_logs')
+                .select('*')
+                .order('datetime', { ascending: true });
+            if (error) throw new Error(error.message);
+            const mapped = (data || []).map(dbToApi).filter(Boolean);
+            if (mapped.length === 0) {
+                // Table is empty in Supabase, auto-seed default 18 test cases
+                return await BugStore.reset();
+            }
+            return mapped;
+        } catch (err) {
+            console.warn('Supabase test_logs fetch warning, returning default seed logs:', err);
+            return defaultSeedLogs;
+        }
     }
+
 
     static async saveAll(logs) {
         const db = getSupabase();
