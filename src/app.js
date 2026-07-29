@@ -53,7 +53,6 @@ class App {
         this.testerSteps = document.getElementById('tester-steps');
         this.testerExpected = document.getElementById('tester-expected');
         this.testerUser = document.getElementById('tester-user');
-        this.testerAddedBy = document.getElementById('tester-added-by');
         this.testerStatus = document.getElementById('tester-status');
         this.testerComments = document.getElementById('tester-comments');
         this.testerAddCloseBtn = document.getElementById('tester-add-close-btn');
@@ -82,7 +81,7 @@ class App {
         this.filterUser = document.getElementById('filter-user');
         this.sortOrder = document.getElementById('sort-order');
 
-        // Analytics Stats
+        // Dashboard Stats
         this.statTotal = document.getElementById('stat-total');
         this.statPass = document.getElementById('stat-pass');
         this.statPassPct = document.getElementById('stat-pass-pct');
@@ -91,7 +90,7 @@ class App {
         this.statChartStroke = document.getElementById('stat-chart-stroke');
         this.statChartPct = document.getElementById('stat-chart-pct');
 
-        // Data Actions Dropdown
+        // Dropdown Actions menu
         this.dataActionsBtn = document.getElementById('data-actions-btn');
         this.dataDropdownMenu = document.getElementById('data-dropdown-menu');
         this.btnExportCSV = document.getElementById('btn-export-csv');
@@ -99,9 +98,18 @@ class App {
         this.importJsonFile = document.getElementById('import-json-file');
         this.btnResetData = document.getElementById('btn-reset-data');
 
+        // Print Config Elements
+        this.printSettingsModal = document.getElementById('print-settings-modal');
+        this.printSettingsForm = document.getElementById('print-settings-form');
+        this.btnOpenPrintSettings = document.getElementById('btn-open-print-settings');
+        this.btnTriggerPrint = document.getElementById('btn-trigger-print');
+        this.printSettingsCloseBtn = document.getElementById('print-settings-close-btn');
+        this.printSettingsCancelBtn = document.getElementById('print-settings-cancel-btn');
+
         // Application State variables
         this.logs = [];
         this.expandedCellIds = new Set();
+        this.printSettings = {};
         this.filteredLogsForPrint = [];
         this.isAdmin = false;
 
@@ -117,6 +125,8 @@ class App {
 
         // 1. Immediately render initial data so the site and all buttons work instantly on visit
         this.logs = await BugStore.getAllSafe();
+        const initialSettings = await PrintSettingsStore.get();
+        if (initialSettings) this.printSettings = initialSettings;
         this.updateModuleFilters();
         this.render();
 
@@ -133,11 +143,15 @@ class App {
             attempt++;
             try {
                 const loadedLogs = await BugStore.getAll();
+                const loadedSettings = await PrintSettingsStore.get();
+
                 if (Array.isArray(loadedLogs) && loadedLogs.length > 0) {
                     this.logs = loadedLogs;
-                    this.updateModuleFilters();
-                    this.render();
                 }
+                if (loadedSettings) this.printSettings = loadedSettings;
+
+                this.updateModuleFilters();
+                this.render();
                 console.log(`[Init] Data synchronized from database on attempt ${attempt}`);
                 return; // success
             } catch (err) {
@@ -147,10 +161,20 @@ class App {
         }
     }
 
+
     initRealtimeSubscriptions() {
-        // 1. Supabase WebSocket push (fires instantly if realtime is enabled in Supabase dashboard)
+        // 1. Supabase WebSocket push (bonus — fires instantly if realtime is enabled in Supabase dashboard)
         subscribeToBugStore(async () => {
             await this.refreshDataFromStore(false);
+        });
+
+        subscribeToPrintSettings(async () => {
+            try {
+                const freshSettings = await PrintSettingsStore.get();
+                if (freshSettings) this.printSettings = freshSettings;
+            } catch (err) {
+                console.warn('Failed to refresh print settings:', err);
+            }
         });
 
         // 2. Fetch immediately when tab becomes visible (handles returning from another site/tab)
@@ -177,9 +201,10 @@ class App {
     async refreshDataFromStore(showToast = false) {
         try {
             const freshLogs = await BugStore.getAllSafe();
-            if (Array.isArray(freshLogs) && freshLogs.length > 0) {
-                this.logs = freshLogs;
-            }
+            const freshSettings = await PrintSettingsStore.get();
+
+            this.logs = Array.isArray(freshLogs) ? freshLogs : this.logs;
+            if (freshSettings) this.printSettings = freshSettings;
 
             this.updateModuleFilters();
 
@@ -225,20 +250,37 @@ class App {
         }
     }
 
-    // --- Dynamic Administrative UI Controls ---
     syncAdminUI() {
         if (this.isAdmin) {
-            document.body.classList.add('is-admin');
-            if (this.newBugBtn) this.newBugBtn.classList.remove('hidden');
-            if (this.lockIconLocked) this.lockIconLocked.classList.add('hidden');
-            if (this.lockIconUnlocked) this.lockIconUnlocked.classList.remove('hidden');
-            if (this.btnAdminToggle) this.btnAdminToggle.title = "Exit Admin Mode";
+            this.btnAdminToggle.classList.add('admin-active');
+            this.lockIconLocked.classList.add('hidden');
+            this.lockIconUnlocked.classList.remove('hidden');
+            this.newBugBtn.classList.remove('hidden');
+
+            // Hide the tester-only single add case button for admin
+            this.btnTesterAdd.classList.add('hidden');
+
+            this.emptyStateBtn.textContent = "Open Table Editor";
+
+            // Show administrative buttons inside the drop menu
+            this.btnResetData.classList.remove('hidden');
+            const fileLabel = this.importJsonFile.closest('.file-label');
+            if (fileLabel) fileLabel.classList.remove('hidden');
         } else {
-            document.body.classList.remove('is-admin');
-            if (this.newBugBtn) this.newBugBtn.classList.add('hidden');
-            if (this.lockIconLocked) this.lockIconLocked.classList.remove('hidden');
-            if (this.lockIconUnlocked) this.lockIconUnlocked.classList.add('hidden');
-            if (this.btnAdminToggle) this.btnAdminToggle.title = "Admin Access";
+            this.btnAdminToggle.classList.remove('admin-active');
+            this.lockIconLocked.classList.remove('hidden');
+            this.lockIconUnlocked.classList.add('hidden');
+            this.newBugBtn.classList.add('hidden');
+
+            // Show the tester-only single add case button for tester
+            this.btnTesterAdd.classList.remove('hidden');
+
+            this.emptyStateBtn.textContent = "Add Test Case";
+
+            // Hide administrative buttons from viewers
+            this.btnResetData.classList.add('hidden');
+            const fileLabel = this.importJsonFile.closest('.file-label');
+            if (fileLabel) fileLabel.classList.add('hidden');
         }
     }
 
@@ -309,71 +351,62 @@ class App {
         window.addEventListener('online', () => this.refreshDataFromStore(true));
 
         // Admin Access Toggle Click
-        if (this.btnAdminToggle) {
-            this.btnAdminToggle.addEventListener('click', async () => {
-                if (this.isAdmin) {
-                    this.isAdmin = false;
-                    sessionStorage.setItem('apawtment_admin', 'false');
-                    sessionStorage.removeItem('novabug_admin');
-                    this.syncAdminUI();
-                    await this.refreshDataFromStore();
-                    this.showToast("Logged out of Admin Mode", "info");
-                } else {
-                    if (this.adminPasswordInput) this.adminPasswordInput.value = '';
-                    if (this.adminLoginModal) this.adminLoginModal.classList.remove('hidden');
-                    if (this.adminPasswordInput) this.adminPasswordInput.focus();
-                }
-            });
-        }
+        this.btnAdminToggle.addEventListener('click', async () => {
+            if (this.isAdmin) {
+                this.isAdmin = false;
+                sessionStorage.setItem('apawtment_admin', 'false');
+                sessionStorage.removeItem('novabug_admin');
+                this.syncAdminUI();
+                await this.refreshDataFromStore();
+                this.showToast("Logged out of Admin Mode", "info");
+            } else {
+                this.adminPasswordInput.value = '';
+                this.adminLoginModal.classList.remove('hidden');
+                this.adminPasswordInput.focus();
+            }
+        });
 
         // Admin login form controls
-        if (this.adminLoginForm) {
-            this.adminLoginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const password = this.adminPasswordInput ? this.adminPasswordInput.value : '';
-                if (password === 'admin123') {
-                    this.isAdmin = true;
-                    sessionStorage.setItem('apawtment_admin', 'true');
-                    if (this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
-                    this.syncAdminUI();
-                    await this.refreshDataFromStore();
-                    this.showToast("Access granted. Admin mode active.", "success");
-                } else {
-                    this.showToast("Invalid admin credentials", "error");
-                }
-            });
-        }
+        this.adminLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = this.adminPasswordInput.value;
+            if (password === 'admin123') {
+                this.isAdmin = true;
+                sessionStorage.setItem('apawtment_admin', 'true');
+                this.adminLoginModal.classList.add('hidden');
+                this.syncAdminUI();
+                await this.refreshDataFromStore();
+                this.showToast("Access granted. Admin mode active.", "success");
+            } else {
+                this.showToast("Invalid admin credentials", "error");
+            }
+        });
 
-        if (this.adminLoginCloseBtn) {
-            this.adminLoginCloseBtn.addEventListener('click', () => {
-                if (this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
-            });
-        }
-        if (this.adminLoginCancelBtn) {
-            this.adminLoginCancelBtn.addEventListener('click', () => {
-                if (this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
-            });
-        }
-        if (this.adminLoginModal) {
-            this.adminLoginModal.addEventListener('click', (e) => {
-                if (e.target === this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
-            });
-        }
+
+        this.adminLoginCloseBtn.addEventListener('click', () => {
+            this.adminLoginModal.classList.add('hidden');
+        });
+        this.adminLoginCancelBtn.addEventListener('click', () => {
+            this.adminLoginModal.classList.add('hidden');
+        });
+        this.adminLoginModal.addEventListener('click', (e) => {
+            if (e.target === this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
+        });
 
         // System Manual Modal Controls
         if (this.btnOpenManual) {
             this.btnOpenManual.addEventListener('click', () => {
-                if (this.manualModal) this.manualModal.classList.remove('hidden');
+                this.manualModal.classList.remove('hidden');
             });
         }
         if (this.manualCloseBtn) {
             this.manualCloseBtn.addEventListener('click', () => {
-                if (this.manualModal) this.manualModal.classList.add('hidden');
+                this.manualModal.classList.add('hidden');
             });
         }
         if (this.manualOkBtn) {
             this.manualOkBtn.addEventListener('click', () => {
-                if (this.manualModal) this.manualModal.classList.add('hidden');
+                this.manualModal.classList.add('hidden');
             });
         }
         if (this.manualModal) {
@@ -383,139 +416,133 @@ class App {
         }
 
         // Tester-Only Single Add Modal Controls
-        if (this.btnTesterAdd) {
-            this.btnTesterAdd.addEventListener('click', () => {
-                if (this.testerAddForm) this.testerAddForm.reset();
-                if (this.testerStatus) this.testerStatus.className = 'grid-select status-pass';
+        this.btnTesterAdd.addEventListener('click', () => {
+            this.testerAddForm.reset();
+            this.testerStatus.className = 'grid-select status-pass';
 
-                const row = this.testerAddModal ? this.testerAddModal.querySelector('.modal-row') : null;
+            // Remove error glow borders
+            const row = this.testerAddModal.querySelector('.modal-row');
+            if (row) {
+                row.style.outline = 'none';
+                row.style.backgroundColor = 'transparent';
+            }
+
+            this.testerAddModal.classList.remove('hidden');
+            this.testerModule.focus();
+        });
+
+        this.testerStatus.addEventListener('change', (e) => {
+            if (e.target.value === 'FAIL') {
+                e.target.className = 'grid-select status-fail';
+            } else {
+                e.target.className = 'grid-select status-pass';
+            }
+        });
+
+        this.testerAddCloseBtn.addEventListener('click', () => {
+            this.testerAddModal.classList.add('hidden');
+        });
+        this.testerAddCancelBtn.addEventListener('click', () => {
+            this.testerAddModal.classList.add('hidden');
+        });
+        this.testerAddModal.addEventListener('click', (e) => {
+            if (e.target === this.testerAddModal) this.testerAddModal.classList.add('hidden');
+        });
+
+        this.testerAddForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleTesterAddSubmit();
+        });
+
+        // Setup Auto numbering for single Tester add text area
+        this.setupAutoNumbering(this.testerSteps);
+
+        // Modal opening triggers
+        this.newBugBtn.addEventListener('click', () => this.openModal());
+        this.emptyStateBtn.addEventListener('click', () => {
+            if (this.isAdmin) {
+                this.openModal();
+            } else {
+                // Open the single add modal for testers
+                this.testerAddForm.reset();
+                this.testerStatus.className = 'grid-select status-pass';
+
+                const row = this.testerAddModal.querySelector('.modal-row');
                 if (row) {
                     row.style.outline = 'none';
                     row.style.backgroundColor = 'transparent';
                 }
 
-                if (this.testerAddModal) this.testerAddModal.classList.remove('hidden');
-                if (this.testerModule) this.testerModule.focus();
-            });
-        }
-
-        if (this.testerStatus) {
-            this.testerStatus.addEventListener('change', (e) => {
-                if (e.target.value === 'FAIL') {
-                    e.target.className = 'grid-select status-fail';
-                } else {
-                    e.target.className = 'grid-select status-pass';
-                }
-            });
-        }
-
-        if (this.testerAddCloseBtn) {
-            this.testerAddCloseBtn.addEventListener('click', () => {
-                if (this.testerAddModal) this.testerAddModal.classList.add('hidden');
-            });
-        }
-        if (this.testerAddCancelBtn) {
-            this.testerAddCancelBtn.addEventListener('click', () => {
-                if (this.testerAddModal) this.testerAddModal.classList.add('hidden');
-            });
-        }
-        if (this.testerAddModal) {
-            this.testerAddModal.addEventListener('click', (e) => {
-                if (e.target === this.testerAddModal) this.testerAddModal.classList.add('hidden');
-            });
-        }
-
-        if (this.testerAddForm) {
-            this.testerAddForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleTesterAddSubmit();
-            });
-        }
-
-        // Setup Auto numbering for single Tester add text area
-        if (this.testerSteps) {
-            this.setupAutoNumbering(this.testerSteps);
-        }
-
-        // Modal opening triggers
-        if (this.newBugBtn) {
-            this.newBugBtn.addEventListener('click', () => this.openModal());
-        }
-        if (this.emptyStateBtn) {
-            this.emptyStateBtn.addEventListener('click', () => {
-                if (this.isAdmin) {
-                    this.openModal();
-                } else if (this.testerAddForm && this.testerAddModal) {
-                    this.testerAddForm.reset();
-                    if (this.testerStatus) this.testerStatus.className = 'grid-select status-pass';
-
-                    const row = this.testerAddModal.querySelector('.modal-row');
-                    if (row) {
-                        row.style.outline = 'none';
-                        row.style.backgroundColor = 'transparent';
-                    }
-
-                    this.testerAddModal.classList.remove('hidden');
-                    if (this.testerModule) this.testerModule.focus();
-                }
-            });
-        }
+                this.testerAddModal.classList.remove('hidden');
+                this.testerModule.focus();
+            }
+        });
 
         // Modal closures
-        if (this.modalCloseBtn) this.modalCloseBtn.addEventListener('click', () => this.closeModal());
-        if (this.modalCancelBtn) this.modalCancelBtn.addEventListener('click', () => this.closeModal());
-        if (this.bugModal) {
-            this.bugModal.addEventListener('click', (e) => {
-                if (e.target === this.bugModal) this.closeModal();
-            });
-        }
+        this.modalCloseBtn.addEventListener('click', () => this.closeModal());
+        this.modalCancelBtn.addEventListener('click', () => this.closeModal());
+        this.bugModal.addEventListener('click', (e) => {
+            if (e.target === this.bugModal) this.closeModal();
+        });
 
         // Add row in modal
-        if (this.btnModalAddRow) {
-            this.btnModalAddRow.addEventListener('click', () => {
-                this.addNewRowToModalTable();
-                this.syncSpreadsheetToStore();
-            });
-        }
+        this.btnModalAddRow.addEventListener('click', () => {
+            this.addNewRowToModalTable();
+            this.syncSpreadsheetToStore();
+        });
 
         // Save button just closes the modal, since everything syncs in real-time!
-        if (this.bugForm) {
-            this.bugForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleFormSubmit();
-            });
-        }
+        this.bugForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleFormSubmit();
+        });
 
         // Theme Switch
-        if (this.themeToggleBtn) {
-            this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
-        }
+        this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
 
         // Filtering options
-        if (this.searchInput) this.searchInput.addEventListener('input', () => this.render());
-        if (this.filterModule) this.filterModule.addEventListener('change', () => this.render());
-        if (this.filterStatus) this.filterStatus.addEventListener('change', () => this.render());
-        if (this.filterUser) this.filterUser.addEventListener('change', () => this.render());
-        if (this.sortOrder) this.sortOrder.addEventListener('change', () => this.render());
+        this.searchInput.addEventListener('input', () => this.render());
+        this.filterModule.addEventListener('change', () => this.render());
+        this.filterStatus.addEventListener('change', () => this.render());
+        this.filterUser.addEventListener('change', () => this.render());
+        this.sortOrder.addEventListener('change', () => this.render());
 
         // Data actions dropdown toggle
-        if (this.dataActionsBtn) {
-            this.dataActionsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (this.dataDropdownMenu) this.dataDropdownMenu.classList.toggle('hidden');
-            });
-        }
+        this.dataActionsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dataDropdownMenu.classList.toggle('hidden');
+        });
         document.addEventListener('click', () => {
-            if (this.dataDropdownMenu) this.dataDropdownMenu.classList.add('hidden');
+            this.dataDropdownMenu.classList.add('hidden');
         });
 
         // Data actions triggers
-        if (this.btnExportCSV) this.btnExportCSV.addEventListener('click', () => this.exportCSV());
-        if (this.btnExportJSON) this.btnExportJSON.addEventListener('click', () => this.exportJSON());
-        if (this.importJsonFile) this.importJsonFile.addEventListener('change', (e) => this.importJSON(e));
-        if (this.btnResetData) this.btnResetData.addEventListener('click', () => this.resetDataStore());
-    }
+        this.btnExportCSV.addEventListener('click', () => this.exportCSV());
+        this.btnExportJSON.addEventListener('click', () => this.exportJSON());
+        this.importJsonFile.addEventListener('change', (e) => this.importJSON(e));
+        this.btnResetData.addEventListener('click', () => this.resetDataStore());
 
+        // UCU Print settings & actions (guarded — elements may not exist in all HTML builds)
+        if (this.btnOpenPrintSettings) this.btnOpenPrintSettings.addEventListener('click', () => this.openPrintSettingsModal());
+        if (this.printSettingsCloseBtn) this.printSettingsCloseBtn.addEventListener('click', () => this.closePrintSettingsModal());
+        if (this.printSettingsCancelBtn) this.printSettingsCancelBtn.addEventListener('click', () => this.closePrintSettingsModal());
+        if (this.printSettingsModal) {
+            this.printSettingsModal.addEventListener('click', (e) => {
+                if (e.target === this.printSettingsModal) this.closePrintSettingsModal();
+            });
+        }
+        if (this.printSettingsForm) {
+            this.printSettingsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handlePrintSettingsSubmit();
+            });
+            const printInputs = this.printSettingsForm.querySelectorAll('input, textarea');
+            printInputs.forEach(inputEl => {
+                inputEl.addEventListener('input', () => this.syncPrintSettingsToStore());
+            });
+        }
+        if (this.btnTriggerPrint) this.btnTriggerPrint.addEventListener('click', () => this.triggerPrintQAForm());
+    }
 
 
     getLocalDateString() {
@@ -566,7 +593,6 @@ class App {
         const statusVal = log.status || 'PASS';
         const statusClass = statusVal === 'FAIL' ? 'status-fail' : 'status-pass';
         const userVal = log.user || 'Fur Parent';
-        const testerNameVal = log.testerName || '';
 
         tr.innerHTML = `
             <td class="tc-id-cell">${tcId}</td>
@@ -583,7 +609,6 @@ class App {
                     <option value="Fur Parent" ${userVal === 'Fur Parent' ? 'selected' : ''}>Fur Parent</option>
                 </select>
             </td>
-            <td><input type="text" class="grid-input row-tester-name" value="${escapeHTML(testerNameVal)}" placeholder="Tester Name" required></td>
             <td>
                 <select class="grid-select row-status ${statusClass}">
                     <option value="PASS" ${statusVal === 'PASS' ? 'selected' : ''}>PASS</option>
@@ -657,12 +682,10 @@ class App {
             const steps = row.querySelector('.row-steps').value.trim();
             const expected = row.querySelector('.row-expected').value.trim();
             const user = row.querySelector('.row-user').value;
-            const testerNameEl = row.querySelector('.row-tester-name');
-            const testerName = testerNameEl ? testerNameEl.value.trim() : '';
             const status = row.querySelector('.row-status').value;
             const comments = row.querySelector('.row-comments').value.trim();
 
-            const isRowEmpty = !module && !scenario && !steps && !expected && !comments && !testerName;
+            const isRowEmpty = !module && !scenario && !steps && !expected && !comments;
 
             if (!isRowEmpty) {
                 // If it's a new row without an ID, generate a new one now
@@ -681,7 +704,6 @@ class App {
                     steps,
                     expected,
                     user,
-                    testerName,
                     status,
                     comments
                 });
@@ -713,14 +735,12 @@ class App {
             const scenario = row.querySelector('.row-scenario').value.trim();
             const steps = row.querySelector('.row-steps').value.trim();
             const expected = row.querySelector('.row-expected').value.trim();
-            const testerNameEl = row.querySelector('.row-tester-name');
-            const testerName = testerNameEl ? testerNameEl.value.trim() : '';
             const comments = row.querySelector('.row-comments').value.trim();
 
-            const isRowEmpty = !module && !scenario && !steps && !expected && !comments && !testerName;
+            const isRowEmpty = !module && !scenario && !steps && !expected && !comments;
 
             if (!isRowEmpty) {
-                if (!module || !scenario || !steps || !expected || !testerName) {
+                if (!module || !scenario || !steps || !expected) {
                     hasValidationError = true;
                     row.style.outline = '1.5px solid var(--fail-color)';
                     row.style.backgroundColor = 'var(--fail-glow)';
@@ -732,13 +752,59 @@ class App {
         });
 
         if (hasValidationError) {
-            this.showToast("All fields (including Tested By, except comments) are required for active test rows.", "error");
+            this.showToast("All fields (except comments) are required for active test rows.", "error");
             return;
         }
 
         // Data is already saved in real-time, so we simply close the modal
         this.showToast("All test logs synchronized!", "success");
         this.closeModal();
+    }
+
+    // --- Print Settings Real-time Sync ---
+    async syncPrintSettingsToStore() {
+        this.printSettings = {
+            groupName: document.getElementById('setup-group-name').value.trim(),
+            systemTitle: document.getElementById('setup-system-title').value.trim(),
+            adviserName: document.getElementById('setup-adviser-name').value.trim(),
+            researchers: document.getElementById('setup-researchers').value.trim(),
+            reportDate: document.getElementById('setup-report-date').value.trim(),
+            preparedLeader: document.getElementById('setup-prepared-leader').value.trim(),
+            preparedProgrammer: document.getElementById('setup-prepared-programmer').value.trim(),
+            checkedAdviser: document.getElementById('setup-checked-adviser').value.trim()
+        };
+
+        try {
+            await PrintSettingsStore.save(this.printSettings);
+        } catch (err) {
+            console.error("Failed to save print settings to MySQL:", err);
+        }
+    }
+
+    openPrintSettingsModal() {
+        document.getElementById('setup-group-name').value = this.printSettings.groupName;
+        document.getElementById('setup-system-title').value = this.printSettings.systemTitle;
+        document.getElementById('setup-adviser-name').value = this.printSettings.adviserName;
+        document.getElementById('setup-researchers').value = this.printSettings.researchers;
+        document.getElementById('setup-report-date').value = this.printSettings.reportDate;
+        document.getElementById('setup-prepared-leader').value = this.printSettings.preparedLeader;
+        document.getElementById('setup-prepared-programmer').value = this.printSettings.preparedProgrammer;
+        document.getElementById('setup-checked-adviser').value = this.printSettings.checkedAdviser;
+
+        this.printSettingsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    closePrintSettingsModal() {
+        this.printSettingsModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async handlePrintSettingsSubmit() {
+        // Save final variables and close modal
+        await this.syncPrintSettingsToStore();
+        this.showToast("Report print settings updated successfully!", "success");
+        this.closePrintSettingsModal();
     }
 
     async handleTesterAddSubmit() {
@@ -748,14 +814,13 @@ class App {
         const steps = this.testerSteps.value.trim();
         const expected = this.testerExpected.value.trim();
         const user = this.testerUser.value;
-        const testerName = this.testerAddedBy ? this.testerAddedBy.value.trim() : '';
         const status = this.testerStatus.value;
         const comments = this.testerComments.value.trim();
 
         const row = this.testerAddModal.querySelector('.modal-row');
 
-        if (!module || !scenario || !steps || !expected || !testerName) {
-            this.showToast("All fields including 'Tested By' (except comments) are required.", "error");
+        if (!module || !scenario || !steps || !expected) {
+            this.showToast("All fields (except comments) are required.", "error");
             if (row) {
                 row.style.outline = '1.5px solid var(--fail-color)';
                 row.style.backgroundColor = 'var(--fail-glow)';
@@ -776,7 +841,6 @@ class App {
             steps,
             expected,
             user,
-            testerName,
             status,
             comments
         };
@@ -790,11 +854,10 @@ class App {
             this.testerAddModal.classList.add('hidden');
             this.showToast(`Test Case added successfully!`, "success");
         } catch (err) {
-            console.error("Failed to add test log:", err);
+            console.error("Failed to add test log to MySQL:", err);
             this.showToast("Failed to save test case to database", "error");
         }
     }
-
 
     updateModuleFilters() {
         const allModules = Array.from(new Set(this.logs.map(log => log.module).filter(Boolean)));
@@ -822,6 +885,160 @@ class App {
         }
     }
 
+    // --- UCU QA Testing Form PDF Printing Engine ---
+    syncPrintLayoutDOM() {
+        let printLayout = document.getElementById('print-layout-container');
+        if (!printLayout) {
+            printLayout = document.createElement('div');
+            printLayout.id = 'print-layout-container';
+            printLayout.className = 'print-only-layout';
+            document.body.appendChild(printLayout);
+        }
+
+        const researchersLines = this.printSettings.researchers
+            .split('\n')
+            .filter(line => line.trim() !== '')
+            .map((name, idx) => `${idx + 1}. ${name}`)
+            .join('<br>');
+
+        let bugRowsHTML = '';
+        this.filteredLogsForPrint.forEach((log, index) => {
+            const tcId = `TC-${String(index + 1).padStart(3, '0')}`;
+            const statusDisplay = log.status === 'PASS' ?
+                '<div class="status-print-cell"><span class="box-checked">&#9745;</span> Pass</div>' :
+                '<div class="status-print-cell"><span class="box-failed">&#9746;</span> Fail</div>';
+
+            bugRowsHTML += `
+                <tr>
+                    <td class="col-id">${tcId}</td>
+                    <td class="col-datetime" style="white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
+                    <td class="col-mod">${escapeHTML(log.module)}</td>
+                    <td class="col-scen">${escapeHTML(log.scenario)}</td>
+                    <td class="col-steps">${this.formatMultilinePrint(log.steps)}</td>
+                    <td class="col-exp">${this.formatMultilinePrint(log.expected)}</td>
+                    <td class="col-user">${escapeHTML(log.user || 'Fur Parent')}</td>
+                    <td class="col-status">${statusDisplay}</td>
+                    <td class="col-comments">${log.comments ? this.formatMultilinePrint(log.comments) : ''}</td>
+                </tr>
+            `;
+        });
+
+        printLayout.innerHTML = `
+            <div class="print-page-wrapper">
+                <!-- University Banner Header -->
+                <header class="print-form-header">
+                    <div class="print-logo-left">
+                        <img src="assets/ucu_logo.png" class="print-img-logo" alt="Urdaneta City University Logo">
+                        <div class="print-logo-text-left">
+                            <div class="txt-main-uni">URDANETA CITY</div>
+                            <div class="txt-sub-uni">Owned and operated by the City Government of Urdaneta</div>
+                            <div class="txt-main-uni">UNIVERSITY</div>
+                        </div>
+                    </div>
+                    <div class="print-logo-right">
+                        <div class="print-logo-text-right">
+                            <div class="txt-college">College of</div>
+                            <div class="txt-college-sub">Information and</div>
+                            <div class="txt-college-sub">Technology</div>
+                            <div class="txt-college-sub">Education</div>
+                        </div>
+                        <img src="assets/cite_logo.jpg" class="print-img-logo" alt="CITE Logo">
+                    </div>
+                </header>
+                
+                <!-- Main Header Title -->
+                <div class="print-title-banner">
+                    Capstone 2 -QA Testing Form
+                </div>
+
+                <!-- Capstone Meta details table -->
+                <table class="print-meta-table">
+                    <tr>
+                        <td class="meta-label">Group Name:</td>
+                        <td class="meta-val">${escapeHTML(this.printSettings.groupName)}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">System Title:</td>
+                        <td class="meta-val">${escapeHTML(this.printSettings.systemTitle)}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Adviser Name:</td>
+                        <td class="meta-val">${escapeHTML(this.printSettings.adviserName)}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Researchers:</td>
+                        <td class="meta-val researchers-list">${researchersLines}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Date:</td>
+                        <td class="meta-val">${escapeHTML(this.printSettings.reportDate)}</td>
+                    </tr>
+                </table>
+
+                <!-- Main Test Results Data Table -->
+                <table class="print-data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-id">Test ID</th>
+                            <th class="col-datetime">Date & Time</th>
+                            <th class="col-mod">Module/Form</th>
+                            <th class="col-scen">Test Scenario</th>
+                            <th class="col-steps">Test Steps</th>
+                            <th class="col-exp">Expected Result</th>
+                            <th class="col-user">User Role</th>
+                            <th class="col-status">Status<br>(PASS/FAIL)</th>
+                            <th class="col-comments">Comments / Bugs Found</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${bugRowsHTML}
+                    </tbody>
+                </table>
+
+                <!-- Signatures Panel -->
+                <div class="print-signatures-area">
+                    <div class="signature-block">
+                        <div class="signature-title">Prepared by:</div>
+                        <div class="signature-line-name">${escapeHTML(this.printSettings.preparedLeader)}</div>
+                        <div class="signature-line-desc">Tester</div>
+                        <div class="signature-date">Date: ______________</div>
+                        
+                        <div class="signature-line-name" style="margin-top: 1.5rem;">${escapeHTML(this.printSettings.preparedProgrammer)}</div>
+                        <div class="signature-line-desc">Programmer</div>
+                        <div class="signature-date">Date: ______________</div>
+                    </div>
+                    <div class="signature-block">
+                        <div class="signature-title">Checked by:</div>
+                        <div class="signature-line-name">${escapeHTML(this.printSettings.checkedAdviser)}</div>
+                        <div class="signature-line-desc">Adviser</div>
+                        <div class="signature-date">Date: ______________</div>
+                    </div>
+                </div>
+
+                <!-- Footer contact elements -->
+                <footer class="print-form-footer">
+                    <div class="footer-motto">Bright future starts here</div>
+                    <div class="footer-contact">
+                        (075) 600 - 1507<br>
+                        San Vicente West, Urdaneta City, Pangasinan<br>
+                        ucu.edu.ph | univpresidentofficial@gmail.com
+                    </div>
+                </footer>
+            </div>
+        `;
+    }
+
+    triggerPrintQAForm() {
+        if (this.filteredLogsForPrint.length === 0) {
+            this.showToast("No test logs matched the filters. Cannot print empty form.", "error");
+            return;
+        }
+
+        this.syncPrintLayoutDOM();
+        setTimeout(() => {
+            window.print();
+        }, 150);
+    }
 
     async updateLogStatus(logId, newStatus) {
         try {
@@ -864,8 +1081,7 @@ class App {
             return;
         }
 
-
-        const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "User Role", "Tested By", "Status", "Comments"];
+        const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "User Role", "Status", "Comments"];
 
         const escapeCSV = (val) => {
             if (val === null || val === undefined) return '';
@@ -883,7 +1099,6 @@ class App {
             log.steps,
             log.expected,
             log.user || "Fur Parent",
-            log.testerName || "",
             log.status,
             log.comments || ""
         ]);
@@ -1006,6 +1221,11 @@ class App {
     }
 
     // --- Numbered / Multi-line Text Formatter (Dashboard cells) ---
+    // Renders each "\n"-separated line as its own row. If a line starts
+    // with a number marker ("1.", "2)", etc.) the marker is pinned to a
+    // fixed-width column and the text sits in a flexible column next to
+    // it, so wrapped continuation text hangs indented under the text
+    // instead of snapping back to the left edge under the number.
     formatMultilineHTML(text, searchVal) {
         if (!text) return '';
         const lines = text.split('\n');
@@ -1018,6 +1238,22 @@ class App {
             }
             if (line.trim() === '') return '';
             return `<div class="line-row"><span class="line-text">${this.highlightText(line, searchVal)}</span></div>`;
+        }).join('');
+    }
+
+    // --- Numbered / Multi-line Text Formatter (Print form cells) ---
+    formatMultilinePrint(text) {
+        if (!text) return '';
+        const lines = escapeHTML(text).split('\n');
+        return lines.map(line => {
+            const match = line.match(/^(\s*)(\d+[.)])\s*(.*)$/);
+            if (match) {
+                const marker = match[2];
+                const content = match[3];
+                return `<div class="print-line-row"><span class="print-line-marker">${marker}</span><span class="print-line-text">${content}</span></div>`;
+            }
+            if (line.trim() === '') return '';
+            return `<div class="print-line-row"><span class="print-line-text">${line}</span></div>`;
         }).join('');
     }
 
@@ -1099,7 +1335,6 @@ class App {
             const stepsText = String(log.steps || '').toLowerCase();
             const expectedText = String(log.expected || '').toLowerCase();
             const userText = String(log.user || 'Fur Parent').toLowerCase();
-            const testerText = String(log.testerName || '').toLowerCase();
             const commentsText = String(log.comments || '').toLowerCase();
 
             const matchesSearch = !searchQuery ||
@@ -1108,7 +1343,6 @@ class App {
                 stepsText.includes(searchQuery) ||
                 expectedText.includes(searchQuery) ||
                 userText.includes(searchQuery) ||
-                testerText.includes(searchQuery) ||
                 commentsText.includes(searchQuery);
 
             const matchesModule = selectedMod === 'all' || log.module === selectedMod;
@@ -1206,7 +1440,6 @@ class App {
                         </div>
                     </td>
                     <td data-label="User Role" style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
-                    <td data-label="Tested By" style="font-weight:600; font-size: 0.85rem; color: var(--text-primary);">${this.highlightText(log.testerName || 'N/A', searchQuery)}</td>
                     <td data-label="Status" style="text-align:center; vertical-align:middle;">
                         ${statusCellHTML}
                     </td>
