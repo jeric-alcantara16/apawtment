@@ -9,9 +9,14 @@ CREATE TABLE IF NOT EXISTS public.test_logs (
     steps TEXT NOT NULL,
     expected TEXT NOT NULL,
     user_role VARCHAR(64) DEFAULT 'Fur Parent',
+    tester_name VARCHAR(255) DEFAULT '',
     status VARCHAR(20) DEFAULT 'PASS',
     comments TEXT DEFAULT ''
 );
+
+-- Alter existing test_logs table if column doesn't exist yet
+ALTER TABLE public.test_logs ADD COLUMN IF NOT EXISTS tester_name VARCHAR(255) DEFAULT '';
+
 
 -- 2. Create print_settings table
 CREATE TABLE IF NOT EXISTS public.print_settings (
