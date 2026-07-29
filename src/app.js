@@ -114,12 +114,16 @@ class App {
         this.initTheme();
         this.bindEvents();
         this.syncAdminUI();
-        this.render(); // render empty/skeleton first
 
-        // Load data from Supabase — retry up to 5 times if fetch fails
-        await this.loadDataWithRetry();
+        // 1. Immediately render initial data so the site and all buttons work instantly on visit
+        this.logs = await BugStore.getAllSafe();
+        this.updateModuleFilters();
+        this.render();
 
-        // Start polling + visibility listeners
+        // 2. Connect to Supabase live data in background
+        this.loadDataWithRetry();
+
+        // 3. Start 5-second polling + tab visibility listeners
         this.initRealtimeSubscriptions();
     }
 
@@ -129,29 +133,22 @@ class App {
             attempt++;
             try {
                 const loadedLogs = await BugStore.getAll();
-                this.logs = Array.isArray(loadedLogs) ? loadedLogs : [];
-
-                this.updateModuleFilters();
-                this.render();
-                console.log(`[Init] Data loaded on attempt ${attempt}`);
+                if (Array.isArray(loadedLogs) && loadedLogs.length > 0) {
+                    this.logs = loadedLogs;
+                    this.updateModuleFilters();
+                    this.render();
+                }
+                console.log(`[Init] Data synchronized from database on attempt ${attempt}`);
                 return; // success
             } catch (err) {
-                console.warn(`[Init] Attempt ${attempt} failed — retrying in 5s:`, err.message);
-                // Show a visible loading message in the table while waiting
-                if (this.bugListContainer) {
-                    this.bugListContainer.innerHTML = `
-                        <div style="text-align:center;padding:2rem;opacity:0.6;">
-                            <div style="font-size:1.2rem;margin-bottom:.5rem;">⏳ Connecting to database…</div>
-                            <div style="font-size:.85rem;">Attempt ${attempt} — retrying in 5 seconds</div>
-                        </div>`;
-                }
+                console.warn(`[Init] Database attempt ${attempt} pending — retrying in 5s:`, err.message);
                 await new Promise(r => setTimeout(r, 5000));
             }
         }
     }
 
     initRealtimeSubscriptions() {
-        // 1. Supabase WebSocket push (bonus — fires instantly if realtime is enabled in Supabase dashboard)
+        // 1. Supabase WebSocket push (fires instantly if realtime is enabled in Supabase dashboard)
         subscribeToBugStore(async () => {
             await this.refreshDataFromStore(false);
         });
@@ -180,7 +177,9 @@ class App {
     async refreshDataFromStore(showToast = false) {
         try {
             const freshLogs = await BugStore.getAllSafe();
-            this.logs = Array.isArray(freshLogs) ? freshLogs : this.logs;
+            if (Array.isArray(freshLogs) && freshLogs.length > 0) {
+                this.logs = freshLogs;
+            }
 
             this.updateModuleFilters();
 
@@ -226,37 +225,20 @@ class App {
         }
     }
 
+    // --- Dynamic Administrative UI Controls ---
     syncAdminUI() {
         if (this.isAdmin) {
-            this.btnAdminToggle.classList.add('admin-active');
-            this.lockIconLocked.classList.add('hidden');
-            this.lockIconUnlocked.classList.remove('hidden');
-            this.newBugBtn.classList.remove('hidden');
-
-            // Hide the tester-only single add case button for admin
-            this.btnTesterAdd.classList.add('hidden');
-
-            this.emptyStateBtn.textContent = "Open Table Editor";
-
-            // Show administrative buttons inside the drop menu
-            this.btnResetData.classList.remove('hidden');
-            const fileLabel = this.importJsonFile.closest('.file-label');
-            if (fileLabel) fileLabel.classList.remove('hidden');
+            document.body.classList.add('is-admin');
+            if (this.newBugBtn) this.newBugBtn.classList.remove('hidden');
+            if (this.lockIconLocked) this.lockIconLocked.classList.add('hidden');
+            if (this.lockIconUnlocked) this.lockIconUnlocked.classList.remove('hidden');
+            if (this.btnAdminToggle) this.btnAdminToggle.title = "Exit Admin Mode";
         } else {
-            this.btnAdminToggle.classList.remove('admin-active');
-            this.lockIconLocked.classList.remove('hidden');
-            this.lockIconUnlocked.classList.add('hidden');
-            this.newBugBtn.classList.add('hidden');
-
-            // Show the tester-only single add case button for tester
-            this.btnTesterAdd.classList.remove('hidden');
-
-            this.emptyStateBtn.textContent = "Add Test Case";
-
-            // Hide administrative buttons from viewers
-            this.btnResetData.classList.add('hidden');
-            const fileLabel = this.importJsonFile.closest('.file-label');
-            if (fileLabel) fileLabel.classList.add('hidden');
+            document.body.classList.remove('is-admin');
+            if (this.newBugBtn) this.newBugBtn.classList.add('hidden');
+            if (this.lockIconLocked) this.lockIconLocked.classList.remove('hidden');
+            if (this.lockIconUnlocked) this.lockIconUnlocked.classList.add('hidden');
+            if (this.btnAdminToggle) this.btnAdminToggle.title = "Admin Access";
         }
     }
 
@@ -327,62 +309,71 @@ class App {
         window.addEventListener('online', () => this.refreshDataFromStore(true));
 
         // Admin Access Toggle Click
-        this.btnAdminToggle.addEventListener('click', async () => {
-            if (this.isAdmin) {
-                this.isAdmin = false;
-                sessionStorage.setItem('apawtment_admin', 'false');
-                sessionStorage.removeItem('novabug_admin');
-                this.syncAdminUI();
-                await this.refreshDataFromStore();
-                this.showToast("Logged out of Admin Mode", "info");
-            } else {
-                this.adminPasswordInput.value = '';
-                this.adminLoginModal.classList.remove('hidden');
-                this.adminPasswordInput.focus();
-            }
-        });
+        if (this.btnAdminToggle) {
+            this.btnAdminToggle.addEventListener('click', async () => {
+                if (this.isAdmin) {
+                    this.isAdmin = false;
+                    sessionStorage.setItem('apawtment_admin', 'false');
+                    sessionStorage.removeItem('novabug_admin');
+                    this.syncAdminUI();
+                    await this.refreshDataFromStore();
+                    this.showToast("Logged out of Admin Mode", "info");
+                } else {
+                    if (this.adminPasswordInput) this.adminPasswordInput.value = '';
+                    if (this.adminLoginModal) this.adminLoginModal.classList.remove('hidden');
+                    if (this.adminPasswordInput) this.adminPasswordInput.focus();
+                }
+            });
+        }
 
         // Admin login form controls
-        this.adminLoginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const password = this.adminPasswordInput.value;
-            if (password === 'admin123') {
-                this.isAdmin = true;
-                sessionStorage.setItem('apawtment_admin', 'true');
-                this.adminLoginModal.classList.add('hidden');
-                this.syncAdminUI();
-                await this.refreshDataFromStore();
-                this.showToast("Access granted. Admin mode active.", "success");
-            } else {
-                this.showToast("Invalid admin credentials", "error");
-            }
-        });
+        if (this.adminLoginForm) {
+            this.adminLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const password = this.adminPasswordInput ? this.adminPasswordInput.value : '';
+                if (password === 'admin123') {
+                    this.isAdmin = true;
+                    sessionStorage.setItem('apawtment_admin', 'true');
+                    if (this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
+                    this.syncAdminUI();
+                    await this.refreshDataFromStore();
+                    this.showToast("Access granted. Admin mode active.", "success");
+                } else {
+                    this.showToast("Invalid admin credentials", "error");
+                }
+            });
+        }
 
-
-        this.adminLoginCloseBtn.addEventListener('click', () => {
-            this.adminLoginModal.classList.add('hidden');
-        });
-        this.adminLoginCancelBtn.addEventListener('click', () => {
-            this.adminLoginModal.classList.add('hidden');
-        });
-        this.adminLoginModal.addEventListener('click', (e) => {
-            if (e.target === this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
-        });
+        if (this.adminLoginCloseBtn) {
+            this.adminLoginCloseBtn.addEventListener('click', () => {
+                if (this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
+            });
+        }
+        if (this.adminLoginCancelBtn) {
+            this.adminLoginCancelBtn.addEventListener('click', () => {
+                if (this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
+            });
+        }
+        if (this.adminLoginModal) {
+            this.adminLoginModal.addEventListener('click', (e) => {
+                if (e.target === this.adminLoginModal) this.adminLoginModal.classList.add('hidden');
+            });
+        }
 
         // System Manual Modal Controls
         if (this.btnOpenManual) {
             this.btnOpenManual.addEventListener('click', () => {
-                this.manualModal.classList.remove('hidden');
+                if (this.manualModal) this.manualModal.classList.remove('hidden');
             });
         }
         if (this.manualCloseBtn) {
             this.manualCloseBtn.addEventListener('click', () => {
-                this.manualModal.classList.add('hidden');
+                if (this.manualModal) this.manualModal.classList.add('hidden');
             });
         }
         if (this.manualOkBtn) {
             this.manualOkBtn.addEventListener('click', () => {
-                this.manualModal.classList.add('hidden');
+                if (this.manualModal) this.manualModal.classList.add('hidden');
             });
         }
         if (this.manualModal) {
@@ -392,111 +383,137 @@ class App {
         }
 
         // Tester-Only Single Add Modal Controls
-        this.btnTesterAdd.addEventListener('click', () => {
-            this.testerAddForm.reset();
-            this.testerStatus.className = 'grid-select status-pass';
+        if (this.btnTesterAdd) {
+            this.btnTesterAdd.addEventListener('click', () => {
+                if (this.testerAddForm) this.testerAddForm.reset();
+                if (this.testerStatus) this.testerStatus.className = 'grid-select status-pass';
 
-            // Remove error glow borders
-            const row = this.testerAddModal.querySelector('.modal-row');
-            if (row) {
-                row.style.outline = 'none';
-                row.style.backgroundColor = 'transparent';
-            }
-
-            this.testerAddModal.classList.remove('hidden');
-            this.testerModule.focus();
-        });
-
-        this.testerStatus.addEventListener('change', (e) => {
-            if (e.target.value === 'FAIL') {
-                e.target.className = 'grid-select status-fail';
-            } else {
-                e.target.className = 'grid-select status-pass';
-            }
-        });
-
-        this.testerAddCloseBtn.addEventListener('click', () => {
-            this.testerAddModal.classList.add('hidden');
-        });
-        this.testerAddCancelBtn.addEventListener('click', () => {
-            this.testerAddModal.classList.add('hidden');
-        });
-        this.testerAddModal.addEventListener('click', (e) => {
-            if (e.target === this.testerAddModal) this.testerAddModal.classList.add('hidden');
-        });
-
-        this.testerAddForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleTesterAddSubmit();
-        });
-
-        // Setup Auto numbering for single Tester add text area
-        this.setupAutoNumbering(this.testerSteps);
-
-        // Modal opening triggers
-        this.newBugBtn.addEventListener('click', () => this.openModal());
-        this.emptyStateBtn.addEventListener('click', () => {
-            if (this.isAdmin) {
-                this.openModal();
-            } else {
-                // Open the single add modal for testers
-                this.testerAddForm.reset();
-                this.testerStatus.className = 'grid-select status-pass';
-
-                const row = this.testerAddModal.querySelector('.modal-row');
+                const row = this.testerAddModal ? this.testerAddModal.querySelector('.modal-row') : null;
                 if (row) {
                     row.style.outline = 'none';
                     row.style.backgroundColor = 'transparent';
                 }
 
-                this.testerAddModal.classList.remove('hidden');
-                this.testerModule.focus();
-            }
-        });
+                if (this.testerAddModal) this.testerAddModal.classList.remove('hidden');
+                if (this.testerModule) this.testerModule.focus();
+            });
+        }
+
+        if (this.testerStatus) {
+            this.testerStatus.addEventListener('change', (e) => {
+                if (e.target.value === 'FAIL') {
+                    e.target.className = 'grid-select status-fail';
+                } else {
+                    e.target.className = 'grid-select status-pass';
+                }
+            });
+        }
+
+        if (this.testerAddCloseBtn) {
+            this.testerAddCloseBtn.addEventListener('click', () => {
+                if (this.testerAddModal) this.testerAddModal.classList.add('hidden');
+            });
+        }
+        if (this.testerAddCancelBtn) {
+            this.testerAddCancelBtn.addEventListener('click', () => {
+                if (this.testerAddModal) this.testerAddModal.classList.add('hidden');
+            });
+        }
+        if (this.testerAddModal) {
+            this.testerAddModal.addEventListener('click', (e) => {
+                if (e.target === this.testerAddModal) this.testerAddModal.classList.add('hidden');
+            });
+        }
+
+        if (this.testerAddForm) {
+            this.testerAddForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleTesterAddSubmit();
+            });
+        }
+
+        // Setup Auto numbering for single Tester add text area
+        if (this.testerSteps) {
+            this.setupAutoNumbering(this.testerSteps);
+        }
+
+        // Modal opening triggers
+        if (this.newBugBtn) {
+            this.newBugBtn.addEventListener('click', () => this.openModal());
+        }
+        if (this.emptyStateBtn) {
+            this.emptyStateBtn.addEventListener('click', () => {
+                if (this.isAdmin) {
+                    this.openModal();
+                } else if (this.testerAddForm && this.testerAddModal) {
+                    this.testerAddForm.reset();
+                    if (this.testerStatus) this.testerStatus.className = 'grid-select status-pass';
+
+                    const row = this.testerAddModal.querySelector('.modal-row');
+                    if (row) {
+                        row.style.outline = 'none';
+                        row.style.backgroundColor = 'transparent';
+                    }
+
+                    this.testerAddModal.classList.remove('hidden');
+                    if (this.testerModule) this.testerModule.focus();
+                }
+            });
+        }
 
         // Modal closures
-        this.modalCloseBtn.addEventListener('click', () => this.closeModal());
-        this.modalCancelBtn.addEventListener('click', () => this.closeModal());
-        this.bugModal.addEventListener('click', (e) => {
-            if (e.target === this.bugModal) this.closeModal();
-        });
+        if (this.modalCloseBtn) this.modalCloseBtn.addEventListener('click', () => this.closeModal());
+        if (this.modalCancelBtn) this.modalCancelBtn.addEventListener('click', () => this.closeModal());
+        if (this.bugModal) {
+            this.bugModal.addEventListener('click', (e) => {
+                if (e.target === this.bugModal) this.closeModal();
+            });
+        }
 
         // Add row in modal
-        this.btnModalAddRow.addEventListener('click', () => {
-            this.addNewRowToModalTable();
-            this.syncSpreadsheetToStore();
-        });
+        if (this.btnModalAddRow) {
+            this.btnModalAddRow.addEventListener('click', () => {
+                this.addNewRowToModalTable();
+                this.syncSpreadsheetToStore();
+            });
+        }
 
         // Save button just closes the modal, since everything syncs in real-time!
-        this.bugForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleFormSubmit();
-        });
+        if (this.bugForm) {
+            this.bugForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleFormSubmit();
+            });
+        }
 
         // Theme Switch
-        this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
+        if (this.themeToggleBtn) {
+            this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
+        }
 
         // Filtering options
-        this.searchInput.addEventListener('input', () => this.render());
-        this.filterModule.addEventListener('change', () => this.render());
-        this.filterStatus.addEventListener('change', () => this.render());
-        this.filterUser.addEventListener('change', () => this.render());
-        this.sortOrder.addEventListener('change', () => this.render());
+        if (this.searchInput) this.searchInput.addEventListener('input', () => this.render());
+        if (this.filterModule) this.filterModule.addEventListener('change', () => this.render());
+        if (this.filterStatus) this.filterStatus.addEventListener('change', () => this.render());
+        if (this.filterUser) this.filterUser.addEventListener('change', () => this.render());
+        if (this.sortOrder) this.sortOrder.addEventListener('change', () => this.render());
 
         // Data actions dropdown toggle
-        this.dataActionsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.dataDropdownMenu.classList.toggle('hidden');
-        });
+        if (this.dataActionsBtn) {
+            this.dataActionsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (this.dataDropdownMenu) this.dataDropdownMenu.classList.toggle('hidden');
+            });
+        }
         document.addEventListener('click', () => {
-            this.dataDropdownMenu.classList.add('hidden');
+            if (this.dataDropdownMenu) this.dataDropdownMenu.classList.add('hidden');
         });
 
         // Data actions triggers
-        this.btnExportCSV.addEventListener('click', () => this.exportCSV());
-        this.btnExportJSON.addEventListener('click', () => this.exportJSON());
-        this.importJsonFile.addEventListener('change', (e) => this.importJSON(e));
-        this.btnResetData.addEventListener('click', () => this.resetDataStore());
+        if (this.btnExportCSV) this.btnExportCSV.addEventListener('click', () => this.exportCSV());
+        if (this.btnExportJSON) this.btnExportJSON.addEventListener('click', () => this.exportJSON());
+        if (this.importJsonFile) this.importJsonFile.addEventListener('change', (e) => this.importJSON(e));
+        if (this.btnResetData) this.btnResetData.addEventListener('click', () => this.resetDataStore());
     }
 
 
