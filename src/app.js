@@ -141,43 +141,64 @@ class App {
     }
 
     initRealtimeSubscriptions() {
+        // 1. Supabase WebSockets push subscription
         subscribeToBugStore(async () => {
             await this.refreshDataFromStore(false);
         });
 
         subscribeToPrintSettings(async () => {
             try {
-                this.printSettings = await PrintSettingsStore.get();
+                const freshSettings = await PrintSettingsStore.get();
+                if (freshSettings) this.printSettings = freshSettings;
             } catch (err) {
                 console.warn('Failed to refresh print settings on realtime update:', err);
             }
         });
+
+        // 2. Start high-frequency fallback polling (every 2.5s) to guarantee real-time updates
+        this.startRealtimePolling();
+    }
+
+    startRealtimePolling() {
+        if (this._pollInterval) clearInterval(this._pollInterval);
+        this._pollInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                this.refreshDataFromStore(false);
+            }
+        }, 2500);
     }
 
     async refreshDataFromStore(showToast = false) {
         try {
             const freshLogs = await BugStore.getAll();
-            this.logs = freshLogs;
             const freshSettings = await PrintSettingsStore.get();
-            if (freshSettings) this.printSettings = freshSettings;
 
-            this.updateModuleFilters();
+            const logsChanged = JSON.stringify(freshLogs) !== JSON.stringify(this.logs);
+            const settingsChanged = JSON.stringify(freshSettings) !== JSON.stringify(this.printSettings);
 
-            // Avoid re-rendering open modal if admin user is actively typing in an input
-            const isModalOpen = this.bugModal && !this.bugModal.classList.contains('hidden');
-            const isUserTypingInModal = isModalOpen && this.bugModal.contains(document.activeElement);
+            if (logsChanged || settingsChanged) {
+                if (logsChanged) this.logs = freshLogs;
+                if (settingsChanged && freshSettings) this.printSettings = freshSettings;
 
-            if (!isUserTypingInModal) {
-                this.render();
-            }
+                this.updateModuleFilters();
 
-            if (showToast) {
-                this.showToast("Data synchronized in real time", "info");
+                // Avoid re-rendering open modal if admin user is actively typing in an input
+                const isModalOpen = this.bugModal && !this.bugModal.classList.contains('hidden');
+                const isUserTypingInModal = isModalOpen && this.bugModal.contains(document.activeElement);
+
+                if (!isUserTypingInModal) {
+                    this.render();
+                }
+
+                if (showToast) {
+                    this.showToast("Data synchronized in real time", "info");
+                }
             }
         } catch (err) {
             console.warn('Realtime refresh error:', err);
         }
     }
+
 
 
     initTheme() {

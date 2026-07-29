@@ -82,9 +82,19 @@ class BugStore {
 
     static async saveAll(logs) {
         const db = getSupabase();
-        // Delete all existing rows first
-        await db.from('test_logs').delete().neq('test_logs_id', '____dummy____');
 
+        // 1. Fetch existing IDs in database
+        const { data: existingData } = await db.from('test_logs').select('test_logs_id');
+        const existingIds = new Set((existingData || []).map(r => r.test_logs_id));
+        const currentIds = new Set(logs.map(l => l.id).filter(Boolean));
+
+        // 2. Delete rows removed from the active log set
+        const idsToDelete = Array.from(existingIds).filter(id => !currentIds.has(id));
+        if (idsToDelete.length > 0) {
+            await db.from('test_logs').delete().in('test_logs_id', idsToDelete);
+        }
+
+        // 3. Prepare rows for upsert
         const rows = logs.map(l => ({
             test_logs_id: l.id || generateId(),
             datetime: apiDatetimeToDb(l.datetime),
@@ -97,10 +107,14 @@ class BugStore {
             comments: l.comments || ''
         }));
 
-        const { data, error } = await db.from('test_logs').insert(rows).select();
-        if (error) throw new Error(error.message);
-        return data.map(dbToApi);
+        if (rows.length > 0) {
+            const { data, error } = await db.from('test_logs').upsert(rows).select();
+            if (error) throw new Error(error.message);
+            return data.map(dbToApi);
+        }
+        return [];
     }
+
 
     static async add(log) {
         const db = getSupabase();
@@ -229,13 +243,19 @@ class PrintSettingsStore {
 function subscribeToBugStore(onDataChange) {
     try {
         const db = getSupabase();
-        const channel = db.channel('realtime_test_logs')
+        const channel = db.channel('test_logs_realtime_channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'test_logs' }, (payload) => {
                 if (typeof onDataChange === 'function') {
                     onDataChange(payload);
                 }
             })
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('[Supabase Realtime] Connected to test_logs stream');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.warn('[Supabase Realtime] WebSocket subscription fallback active');
+                }
+            });
         return channel;
     } catch (err) {
         console.warn('Realtime subscription to test_logs failed:', err);
@@ -246,13 +266,17 @@ function subscribeToBugStore(onDataChange) {
 function subscribeToPrintSettings(onDataChange) {
     try {
         const db = getSupabase();
-        const channel = db.channel('realtime_print_settings')
+        const channel = db.channel('print_settings_realtime_channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'print_settings' }, (payload) => {
                 if (typeof onDataChange === 'function') {
                     onDataChange(payload);
                 }
             })
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('[Supabase Realtime] Connected to print_settings stream');
+                }
+            });
         return channel;
     } catch (err) {
         console.warn('Realtime subscription to print_settings failed:', err);
@@ -261,4 +285,5 @@ function subscribeToPrintSettings(onDataChange) {
 }
 
 export { BugStore, PrintSettingsStore, subscribeToBugStore, subscribeToPrintSettings };
+
 
