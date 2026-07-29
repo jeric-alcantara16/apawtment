@@ -225,8 +225,11 @@
                         <button id="btn-reset-data" class="dropdown-item danger">Reset Store</button>
                     </div>
                 </div>
+                <button id="btn-open-print-settings" class="btn btn-secondary" title="Report Settings">&#9881;&#65039; Report Settings</button>
+                <button id="btn-trigger-print" class="btn btn-primary" title="Print QA Report">&#128424;&#65039; Print Report</button>
             </div>
         </section>
+
 
         <!-- Main Bug Registry Screen (Table Format) -->
         <main class="bug-registry-list" id="bug-list-container">
@@ -557,9 +560,66 @@
     <!-- Notification system -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Print Settings Modal -->
+    <div class="modal-overlay hidden" id="print-settings-modal">
+        <div class="modal-card" style="max-width:680px;width:95vw;">
+            <header class="modal-header">
+                <h2>Report &amp; Print Settings</h2>
+                <button id="print-settings-close-btn" class="icon-btn-close" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body" style="padding:1.5rem;">
+                <form id="print-settings-form">
+                    <div style="display:grid;gap:1rem;">
+                        <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                            Group Name
+                            <input type="text" id="setup-group-name" class="form-input" placeholder="e.g. Team Harvard">
+                        </label>
+                        <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                            System Title
+                            <input type="text" id="setup-system-title" class="form-input" placeholder="Full system title">
+                        </label>
+                        <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                            Adviser Name
+                            <input type="text" id="setup-adviser-name" class="form-input" placeholder="Adviser full name + title">
+                        </label>
+                        <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                            Researchers (one per line)
+                            <textarea id="setup-researchers" class="form-input" rows="5" placeholder="Full name per line"></textarea>
+                        </label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                                Report Date
+                                <input type="text" id="setup-report-date" class="form-input" placeholder="e.g. March 23, 2026">
+                            </label>
+                            <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                                Prepared By (Leader)
+                                <input type="text" id="setup-prepared-leader" class="form-input">
+                            </label>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                                Prepared By (Programmer)
+                                <input type="text" id="setup-prepared-programmer" class="form-input">
+                            </label>
+                            <label style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:600;">
+                                Checked By (Adviser)
+                                <input type="text" id="setup-checked-adviser" class="form-input">
+                            </label>
+                        </div>
+                    </div>
+                    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border-color);display:flex;gap:.75rem;justify-content:flex-end;">
+                        <button type="button" id="print-settings-cancel-btn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="src/app.js?v=16" type="module"></script>
+    <script src="src/app.js?v=17" type="module"></script>
+
 
 
 

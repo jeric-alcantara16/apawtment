@@ -521,28 +521,28 @@ class App {
         this.importJsonFile.addEventListener('change', (e) => this.importJSON(e));
         this.btnResetData.addEventListener('click', () => this.resetDataStore());
 
-        // UCU Print settings & actions
-        this.btnOpenPrintSettings.addEventListener('click', () => this.openPrintSettingsModal());
-        this.printSettingsCloseBtn.addEventListener('click', () => this.closePrintSettingsModal());
-        this.printSettingsCancelBtn.addEventListener('click', () => this.closePrintSettingsModal());
-        this.printSettingsModal.addEventListener('click', (e) => {
-            if (e.target === this.printSettingsModal) this.closePrintSettingsModal();
-        });
-
-        // Save buttons for print settings just close the modal (since print settings sync in real-time)
-        this.printSettingsForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handlePrintSettingsSubmit();
-        });
-
-        // Bind input listeners to print settings fields for real-time saving
-        const printInputs = this.printSettingsForm.querySelectorAll('input, textarea');
-        printInputs.forEach(inputEl => {
-            inputEl.addEventListener('input', () => this.syncPrintSettingsToStore());
-        });
-
-        this.btnTriggerPrint.addEventListener('click', () => this.triggerPrintQAForm());
+        // UCU Print settings & actions (guarded — elements may not exist in all HTML builds)
+        if (this.btnOpenPrintSettings) this.btnOpenPrintSettings.addEventListener('click', () => this.openPrintSettingsModal());
+        if (this.printSettingsCloseBtn) this.printSettingsCloseBtn.addEventListener('click', () => this.closePrintSettingsModal());
+        if (this.printSettingsCancelBtn) this.printSettingsCancelBtn.addEventListener('click', () => this.closePrintSettingsModal());
+        if (this.printSettingsModal) {
+            this.printSettingsModal.addEventListener('click', (e) => {
+                if (e.target === this.printSettingsModal) this.closePrintSettingsModal();
+            });
+        }
+        if (this.printSettingsForm) {
+            this.printSettingsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handlePrintSettingsSubmit();
+            });
+            const printInputs = this.printSettingsForm.querySelectorAll('input, textarea');
+            printInputs.forEach(inputEl => {
+                inputEl.addEventListener('input', () => this.syncPrintSettingsToStore());
+            });
+        }
+        if (this.btnTriggerPrint) this.btnTriggerPrint.addEventListener('click', () => this.triggerPrintQAForm());
     }
+
 
     getLocalDateString() {
         const phOffset = 8 * 60 * 60 * 1000; // GMT+8 offset in milliseconds
