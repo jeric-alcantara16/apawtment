@@ -805,8 +805,6 @@ class App {
         }
     }
 
-    }
-
 
     async updateLogStatus(logId, newStatus) {
         try {
