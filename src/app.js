@@ -117,31 +117,50 @@ class App {
     }
 
     async init() {
-        try {
-            const loadedLogs = await BugStore.getAll();
-            this.logs = Array.isArray(loadedLogs) ? loadedLogs : [];
-            this.printSettings = await PrintSettingsStore.get();
-        } catch (err) {
-            console.warn('Database init warning:', err.message);
-            if (!this.logs) this.logs = [];
-        }
-
-
-        // Retrieve persistent admin login status
+        // Setup UI and theme first so page isn't blank
         this.isAdmin = sessionStorage.getItem('apawtment_admin') === 'true' || sessionStorage.getItem('novabug_admin') === 'true';
-
         this.initTheme();
         this.bindEvents();
         this.syncAdminUI();
-        this.updateModuleFilters();
-        this.render();
+        this.render(); // render empty/skeleton first
 
-        // Initialize Realtime WebSockets Listener
+        // Load data from Supabase — retry up to 5 times if fetch fails
+        await this.loadDataWithRetry();
+
+        // Start polling + visibility listeners
         this.initRealtimeSubscriptions();
     }
 
+    async loadDataWithRetry() {
+        const MAX_RETRIES = 5;
+        const RETRY_DELAY_MS = 2000;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const loadedLogs = await BugStore.getAll();
+                const loadedSettings = await PrintSettingsStore.get();
+
+                this.logs = Array.isArray(loadedLogs) ? loadedLogs : [];
+                if (loadedSettings) this.printSettings = loadedSettings;
+
+                this.updateModuleFilters();
+                this.render();
+                console.log(`[Init] Data loaded on attempt ${attempt}`);
+                return; // success — stop retrying
+            } catch (err) {
+                console.warn(`[Init] Attempt ${attempt} failed:`, err.message);
+                if (attempt < MAX_RETRIES) {
+                    await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+                }
+            }
+        }
+        // All retries exhausted — render whatever we have
+        this.updateModuleFilters();
+        this.render();
+    }
+
     initRealtimeSubscriptions() {
-        // 1. Supabase WebSockets push subscription
+        // 1. Supabase WebSocket push (bonus — fires instantly if realtime is enabled in Supabase dashboard)
         subscribeToBugStore(async () => {
             await this.refreshDataFromStore(false);
         });
@@ -151,18 +170,23 @@ class App {
                 const freshSettings = await PrintSettingsStore.get();
                 if (freshSettings) this.printSettings = freshSettings;
             } catch (err) {
-                console.warn('Failed to refresh print settings on realtime update:', err);
+                console.warn('Failed to refresh print settings:', err);
             }
         });
 
-        // 2. Start high-frequency fallback polling (every 2.5s) to guarantee real-time updates
+        // 2. Fetch immediately when tab becomes visible (handles returning from another site/tab)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.refreshDataFromStore(false);
+            }
+        });
+
+        // 3. Poll every 5 seconds as reliable fallback
         this.startRealtimePolling();
     }
 
     startRealtimePolling() {
         if (this._pollInterval) clearInterval(this._pollInterval);
-        // Fire immediately on page load/refresh, then every 5 seconds
-        this.refreshDataFromStore(false);
         this._pollInterval = setInterval(() => {
             if (document.visibilityState === 'visible') {
                 this.refreshDataFromStore(false);
@@ -176,13 +200,12 @@ class App {
             const freshLogs = await BugStore.getAll();
             const freshSettings = await PrintSettingsStore.get();
 
-            // Always update state with freshest data from DB
             this.logs = Array.isArray(freshLogs) ? freshLogs : this.logs;
             if (freshSettings) this.printSettings = freshSettings;
 
             this.updateModuleFilters();
 
-            // Avoid re-rendering open modal if admin user is actively typing in an input
+            // Don't interrupt admin actively typing in the edit modal
             const isModalOpen = this.bugModal && !this.bugModal.classList.contains('hidden');
             const isUserTypingInModal = isModalOpen && this.bugModal.contains(document.activeElement);
 
@@ -197,7 +220,6 @@ class App {
             console.warn('Realtime refresh error:', err);
         }
     }
-
 
 
     initTheme() {
