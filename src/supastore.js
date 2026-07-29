@@ -72,16 +72,18 @@ const defaultSeedLogs = [
 class BugStore {
     static async getAll() {
         const db = getSupabase();
+        if (!db) return [];
         const { data, error } = await db
             .from('test_logs')
             .select('*')
             .order('datetime', { ascending: true });
         if (error) throw new Error(error.message);
-        return data.map(dbToApi);
+        return (data || []).map(dbToApi);
     }
 
     static async saveAll(logs) {
         const db = getSupabase();
+        if (!db) return [];
 
         // 1. Fetch existing IDs in database
         const { data: existingData } = await db.from('test_logs').select('test_logs_id');
@@ -110,10 +112,11 @@ class BugStore {
         if (rows.length > 0) {
             const { data, error } = await db.from('test_logs').upsert(rows).select();
             if (error) throw new Error(error.message);
-            return data.map(dbToApi);
+            return (data || []).map(dbToApi);
         }
         return [];
     }
+
 
 
     static async add(log) {

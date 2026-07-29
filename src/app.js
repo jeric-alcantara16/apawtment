@@ -1529,7 +1529,15 @@ function formatDateTime(isoStr) {
     }
 }
 
-// Instantiate application on window mount
-window.addEventListener('DOMContentLoaded', () => {
-    window.novabugApp = new App();
-});
+// Instantiate application reliably (handles cases where DOMContentLoaded already fired before ES module loaded)
+function bootApp() {
+    if (!window.novabugApp) {
+        window.novabugApp = new App();
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootApp);
+} else {
+    bootApp();
+}
