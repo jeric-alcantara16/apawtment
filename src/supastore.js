@@ -6,13 +6,12 @@
  * Supabase Project: muyubeutdcrnjzdaacsh
  */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
 const SUPABASE_URL = 'https://muyubeutdcrnjzdaacsh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11eXViZXV0ZGNybmp6ZGFhY3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNDcyMTUsImV4cCI6MjEwMDcyMzIxNX0.h0nZ4njrkKLdooUS8-ZwJwTfsuFVYbCNy1Kr2008ZTI';
 
-// Single shared Supabase client instance
-const _db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ES modules are deferred — regular CDN <script> tags finish BEFORE modules execute.
+// So window.supabase is always available here. We create the client once at module load time.
+const _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function getSupabase() {
     return _db;
