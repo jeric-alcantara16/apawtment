@@ -161,11 +161,12 @@ class App {
 
     startRealtimePolling() {
         if (this._pollInterval) clearInterval(this._pollInterval);
+        // Poll every 3 seconds — guarantees near-realtime updates regardless of WebSocket status
         this._pollInterval = setInterval(() => {
             if (document.visibilityState === 'visible') {
                 this.refreshDataFromStore(false);
             }
-        }, 2500);
+        }, 3000);
     }
 
     async refreshDataFromStore(showToast = false) {
@@ -173,26 +174,22 @@ class App {
             const freshLogs = await BugStore.getAll();
             const freshSettings = await PrintSettingsStore.get();
 
-            const logsChanged = JSON.stringify(freshLogs) !== JSON.stringify(this.logs);
-            const settingsChanged = JSON.stringify(freshSettings) !== JSON.stringify(this.printSettings);
+            // Always update state with freshest data from DB
+            this.logs = Array.isArray(freshLogs) ? freshLogs : this.logs;
+            if (freshSettings) this.printSettings = freshSettings;
 
-            if (logsChanged || settingsChanged) {
-                if (logsChanged) this.logs = freshLogs;
-                if (settingsChanged && freshSettings) this.printSettings = freshSettings;
+            this.updateModuleFilters();
 
-                this.updateModuleFilters();
+            // Avoid re-rendering open modal if admin user is actively typing in an input
+            const isModalOpen = this.bugModal && !this.bugModal.classList.contains('hidden');
+            const isUserTypingInModal = isModalOpen && this.bugModal.contains(document.activeElement);
 
-                // Avoid re-rendering open modal if admin user is actively typing in an input
-                const isModalOpen = this.bugModal && !this.bugModal.classList.contains('hidden');
-                const isUserTypingInModal = isModalOpen && this.bugModal.contains(document.activeElement);
+            if (!isUserTypingInModal) {
+                this.render();
+            }
 
-                if (!isUserTypingInModal) {
-                    this.render();
-                }
-
-                if (showToast) {
-                    this.showToast("Data synchronized in real time", "info");
-                }
+            if (showToast) {
+                this.showToast('Data synchronized', 'info');
             }
         } catch (err) {
             console.warn('Realtime refresh error:', err);

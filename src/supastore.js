@@ -73,7 +73,6 @@ const defaultSeedLogs = [
 class BugStore {
     static async getAll() {
         const db = getSupabase();
-        if (!db) return defaultSeedLogs;
         try {
             const { data, error } = await db
                 .from('test_logs')
@@ -81,11 +80,8 @@ class BugStore {
                 .order('datetime', { ascending: true });
             if (error) throw new Error(error.message);
             const mapped = (data || []).map(dbToApi).filter(Boolean);
-            if (mapped.length === 0) {
-                // Table is empty in Supabase, auto-seed default 18 test cases
-                return await BugStore.reset();
-            }
-            return mapped;
+            // If DB is empty, return seed data (do NOT auto-write to DB — avoid overwriting user data)
+            return mapped.length > 0 ? mapped : defaultSeedLogs;
         } catch (err) {
             console.warn('Supabase test_logs fetch warning, returning default seed logs:', err);
             return defaultSeedLogs;
