@@ -1,4 +1,4 @@
-import { BugStore, defaultSeedLogs, subscribeToBugStore } from './supastore.js';
+import { BugStore, subscribeToBugStore } from './supastore.js';
 
 /**
  * NovaBug - Bug Management & Test Run Registry
@@ -98,35 +98,27 @@ class App {
         this.bindEvents();
         this.syncAdminUI();
 
-        // 1. Immediately render initial data synchronously (0ms) so site and buttons work instantly on direct visit/refresh
-        this.logs = defaultSeedLogs;
+        // 1. Render empty state initially until database responds
+        this.logs = [];
         this.updateModuleFilters();
         this.render();
 
-        // 2. Connect to Supabase live data in background
-        this.loadDataWithRetry();
+        // 2. Fetch live data directly from Supabase database
+        await this.loadDataWithRetry();
 
         // 3. Start 5-second polling + tab visibility listeners
         this.initRealtimeSubscriptions();
     }
 
     async loadDataWithRetry() {
-        let attempt = 0;
-        while (true) {
-            attempt++;
-            try {
-                const loadedLogs = await BugStore.getAll();
-                if (Array.isArray(loadedLogs) && loadedLogs.length > 0) {
-                    this.logs = loadedLogs;
-                    this.updateModuleFilters();
-                    this.render();
-                }
-                console.log(`[Init] Data synchronized from database on attempt ${attempt}`);
-                return; // success
-            } catch (err) {
-                console.warn(`[Init] Database attempt ${attempt} pending — retrying in 5s:`, err.message);
-                await new Promise(r => setTimeout(r, 5000));
-            }
+        try {
+            const loadedLogs = await BugStore.getAllSafe();
+            this.logs = Array.isArray(loadedLogs) ? loadedLogs : [];
+            this.updateModuleFilters();
+            this.render();
+            console.log(`[Init] Data synchronized directly from database`);
+        } catch (err) {
+            console.warn(`[Init] Database query error:`, err.message);
         }
     }
 
