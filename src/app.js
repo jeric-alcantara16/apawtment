@@ -1,26 +1,9 @@
-import { BugStore, PrintSettingsStore, subscribeToBugStore, subscribeToPrintSettings } from './supastore.js';
+import { BugStore, defaultSeedLogs, subscribeToBugStore } from './supastore.js';
 
 /**
  * NovaBug - Bug Management & Test Run Registry
  * Core Javascript Application Logic - Branding, Rebranding, Roles & User Fields Edition
  */
-
-// --- 18 Seed Test Cases from UCU Capstone 2 PDF with User Roles ---
-
-
-// --- Default Capstone UCU Form Metadata ---
-const DEFAULT_PRINT_SETTINGS = {
-    groupName: "Team Harvard",
-    systemTitle: "APawtMent: A Multi-Platform Information System for Adopting Pets of Luca’s Sanctuary and Cawa’s Gang",
-    adviserName: "Jeffrey M. Caoile, LPT, DIT",
-    researchers: "John Lee T. Agustin\nJeric Jay P. Alcantara\nPhilip James S. Marquez\nJohn Denver C. Petinez\nJacques Esmond B. Fernandez",
-    reportDate: "March 23, 2026",
-    preparedLeader: "Anthony G. Marquez",
-    preparedProgrammer: "Anthony G. Marquez",
-    checkedAdviser: "Anthony G. Marquez, LPT, MIT"
-};
-
-
 
 // --- Application UI Controller ---
 class App {
@@ -53,6 +36,7 @@ class App {
         this.testerSteps = document.getElementById('tester-steps');
         this.testerExpected = document.getElementById('tester-expected');
         this.testerUser = document.getElementById('tester-user');
+        this.testerAddedBy = document.getElementById('tester-added-by');
         this.testerStatus = document.getElementById('tester-status');
         this.testerComments = document.getElementById('tester-comments');
         this.testerAddCloseBtn = document.getElementById('tester-add-close-btn');
@@ -98,18 +82,9 @@ class App {
         this.importJsonFile = document.getElementById('import-json-file');
         this.btnResetData = document.getElementById('btn-reset-data');
 
-        // Print Config Elements
-        this.printSettingsModal = document.getElementById('print-settings-modal');
-        this.printSettingsForm = document.getElementById('print-settings-form');
-        this.btnOpenPrintSettings = document.getElementById('btn-open-print-settings');
-        this.btnTriggerPrint = document.getElementById('btn-trigger-print');
-        this.printSettingsCloseBtn = document.getElementById('print-settings-close-btn');
-        this.printSettingsCancelBtn = document.getElementById('print-settings-cancel-btn');
-
         // Application State variables
         this.logs = [];
         this.expandedCellIds = new Set();
-        this.printSettings = {};
         this.filteredLogsForPrint = [];
         this.isAdmin = false;
 
@@ -123,10 +98,8 @@ class App {
         this.bindEvents();
         this.syncAdminUI();
 
-        // 1. Immediately render initial data so the site and all buttons work instantly on visit
-        this.logs = await BugStore.getAllSafe();
-        const initialSettings = await PrintSettingsStore.get();
-        if (initialSettings) this.printSettings = initialSettings;
+        // 1. Immediately render initial data synchronously (0ms) so site and buttons work instantly on direct visit/refresh
+        this.logs = defaultSeedLogs;
         this.updateModuleFilters();
         this.render();
 
@@ -143,15 +116,11 @@ class App {
             attempt++;
             try {
                 const loadedLogs = await BugStore.getAll();
-                const loadedSettings = await PrintSettingsStore.get();
-
                 if (Array.isArray(loadedLogs) && loadedLogs.length > 0) {
                     this.logs = loadedLogs;
+                    this.updateModuleFilters();
+                    this.render();
                 }
-                if (loadedSettings) this.printSettings = loadedSettings;
-
-                this.updateModuleFilters();
-                this.render();
                 console.log(`[Init] Data synchronized from database on attempt ${attempt}`);
                 return; // success
             } catch (err) {
@@ -166,15 +135,6 @@ class App {
         // 1. Supabase WebSocket push (bonus — fires instantly if realtime is enabled in Supabase dashboard)
         subscribeToBugStore(async () => {
             await this.refreshDataFromStore(false);
-        });
-
-        subscribeToPrintSettings(async () => {
-            try {
-                const freshSettings = await PrintSettingsStore.get();
-                if (freshSettings) this.printSettings = freshSettings;
-            } catch (err) {
-                console.warn('Failed to refresh print settings:', err);
-            }
         });
 
         // 2. Fetch immediately when tab becomes visible (handles returning from another site/tab)
@@ -197,14 +157,11 @@ class App {
         }, 5000);
     }
 
-
     async refreshDataFromStore(showToast = false) {
         try {
             const freshLogs = await BugStore.getAllSafe();
-            const freshSettings = await PrintSettingsStore.get();
 
-            this.logs = Array.isArray(freshLogs) ? freshLogs : this.logs;
-            if (freshSettings) this.printSettings = freshSettings;
+            this.logs = Array.isArray(freshLogs) && freshLogs.length > 0 ? freshLogs : this.logs;
 
             this.updateModuleFilters();
 
