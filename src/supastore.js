@@ -6,17 +6,18 @@
  * Supabase Project: muyubeutdcrnjzdaacsh
  */
 
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 const SUPABASE_URL = 'https://muyubeutdcrnjzdaacsh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11eXViZXV0ZGNybmp6ZGFhY3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNDcyMTUsImV4cCI6MjEwMDcyMzIxNX0.h0nZ4njrkKLdooUS8-ZwJwTfsuFVYbCNy1Kr2008ZTI';
 
+// Single shared Supabase client instance
+const _db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 function getSupabase() {
-    if (window._supabaseInstance) return window._supabaseInstance;
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-        window._supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        return window._supabaseInstance;
-    }
-    throw new Error('Supabase SDK is not loaded. Make sure the CDN script tag is present in index.html');
+    return _db;
 }
+
 
 // --- Helper: map DB row -> app object ---
 function dbToApi(row) {
