@@ -566,6 +566,7 @@ class App {
                     <option value="Fur Parent" ${userVal === 'Fur Parent' ? 'selected' : ''}>Fur Parent</option>
                 </select>
             </td>
+            <td><input type="text" class="grid-input row-tester-name" value="${escapeHTML(log.testerName || '')}" placeholder="Tester Name" required></td>
             <td>
                 <select class="grid-select row-status ${statusClass}">
                     <option value="PASS" ${statusVal === 'PASS' ? 'selected' : ''}>PASS</option>
@@ -639,10 +640,11 @@ class App {
             const steps = row.querySelector('.row-steps').value.trim();
             const expected = row.querySelector('.row-expected').value.trim();
             const user = row.querySelector('.row-user').value;
+            const testerName = row.querySelector('.row-tester-name') ? row.querySelector('.row-tester-name').value.trim() : '';
             const status = row.querySelector('.row-status').value;
             const comments = row.querySelector('.row-comments').value.trim();
 
-            const isRowEmpty = !module && !scenario && !steps && !expected && !comments;
+            const isRowEmpty = !module && !scenario && !steps && !expected && !comments && !testerName;
 
             if (!isRowEmpty) {
                 // If it's a new row without an ID, generate a new one now
@@ -661,6 +663,7 @@ class App {
                     steps,
                     expected,
                     user,
+                    testerName,
                     status,
                     comments
                 });
@@ -692,12 +695,13 @@ class App {
             const scenario = row.querySelector('.row-scenario').value.trim();
             const steps = row.querySelector('.row-steps').value.trim();
             const expected = row.querySelector('.row-expected').value.trim();
+            const testerName = row.querySelector('.row-tester-name') ? row.querySelector('.row-tester-name').value.trim() : '';
             const comments = row.querySelector('.row-comments').value.trim();
 
-            const isRowEmpty = !module && !scenario && !steps && !expected && !comments;
+            const isRowEmpty = !module && !scenario && !steps && !expected && !comments && !testerName;
 
             if (!isRowEmpty) {
-                if (!module || !scenario || !steps || !expected) {
+                if (!module || !scenario || !steps || !expected || !testerName) {
                     hasValidationError = true;
                     row.style.outline = '1.5px solid var(--fail-color)';
                     row.style.backgroundColor = 'var(--fail-glow)';
@@ -718,66 +722,21 @@ class App {
         this.closeModal();
     }
 
-    // --- Print Settings Real-time Sync ---
-    async syncPrintSettingsToStore() {
-        this.printSettings = {
-            groupName: document.getElementById('setup-group-name').value.trim(),
-            systemTitle: document.getElementById('setup-system-title').value.trim(),
-            adviserName: document.getElementById('setup-adviser-name').value.trim(),
-            researchers: document.getElementById('setup-researchers').value.trim(),
-            reportDate: document.getElementById('setup-report-date').value.trim(),
-            preparedLeader: document.getElementById('setup-prepared-leader').value.trim(),
-            preparedProgrammer: document.getElementById('setup-prepared-programmer').value.trim(),
-            checkedAdviser: document.getElementById('setup-checked-adviser').value.trim()
-        };
-
-        try {
-            await PrintSettingsStore.save(this.printSettings);
-        } catch (err) {
-            console.error("Failed to save print settings to MySQL:", err);
-        }
-    }
-
-    openPrintSettingsModal() {
-        document.getElementById('setup-group-name').value = this.printSettings.groupName;
-        document.getElementById('setup-system-title').value = this.printSettings.systemTitle;
-        document.getElementById('setup-adviser-name').value = this.printSettings.adviserName;
-        document.getElementById('setup-researchers').value = this.printSettings.researchers;
-        document.getElementById('setup-report-date').value = this.printSettings.reportDate;
-        document.getElementById('setup-prepared-leader').value = this.printSettings.preparedLeader;
-        document.getElementById('setup-prepared-programmer').value = this.printSettings.preparedProgrammer;
-        document.getElementById('setup-checked-adviser').value = this.printSettings.checkedAdviser;
-
-        this.printSettingsModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    closePrintSettingsModal() {
-        this.printSettingsModal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    async handlePrintSettingsSubmit() {
-        // Save final variables and close modal
-        await this.syncPrintSettingsToStore();
-        this.showToast("Report print settings updated successfully!", "success");
-        this.closePrintSettingsModal();
-    }
-
     async handleTesterAddSubmit() {
         const datetime = this.getLocalDateString(); // Auto GMT+8 time
-        const module = this.testerModule.value.trim();
-        const scenario = this.testerScenario.value.trim();
-        const steps = this.testerSteps.value.trim();
-        const expected = this.testerExpected.value.trim();
-        const user = this.testerUser.value;
-        const status = this.testerStatus.value;
-        const comments = this.testerComments.value.trim();
+        const module = this.testerModule ? this.testerModule.value.trim() : '';
+        const scenario = this.testerScenario ? this.testerScenario.value.trim() : '';
+        const steps = this.testerSteps ? this.testerSteps.value.trim() : '';
+        const expected = this.testerExpected ? this.testerExpected.value.trim() : '';
+        const user = this.testerUser ? this.testerUser.value : 'Fur Parent';
+        const testerName = this.testerAddedBy ? this.testerAddedBy.value.trim() : '';
+        const status = this.testerStatus ? this.testerStatus.value : 'PASS';
+        const comments = this.testerComments ? this.testerComments.value.trim() : '';
 
-        const row = this.testerAddModal.querySelector('.modal-row');
+        const row = this.testerAddModal ? this.testerAddModal.querySelector('.modal-row') : null;
 
-        if (!module || !scenario || !steps || !expected) {
-            this.showToast("All fields (except comments) are required.", "error");
+        if (!module || !scenario || !steps || !expected || !testerName) {
+            this.showToast("All fields (including Tested By, except comments) are required.", "error");
             if (row) {
                 row.style.outline = '1.5px solid var(--fail-color)';
                 row.style.backgroundColor = 'var(--fail-glow)';
@@ -798,6 +757,7 @@ class App {
             steps,
             expected,
             user,
+            testerName,
             status,
             comments
         };
@@ -808,10 +768,10 @@ class App {
             this.updateModuleFilters();
             this.render();
 
-            this.testerAddModal.classList.add('hidden');
+            if (this.testerAddModal) this.testerAddModal.classList.add('hidden');
             this.showToast(`Test Case added successfully!`, "success");
         } catch (err) {
-            console.error("Failed to add test log to MySQL:", err);
+            console.error("Failed to add test log to database:", err);
             this.showToast("Failed to save test case to database", "error");
         }
     }
@@ -1038,7 +998,7 @@ class App {
             return;
         }
 
-        const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "User Role", "Status", "Comments"];
+        const headers = ["Date & Time Created", "Section / Module", "Test Scenario", "Test Steps", "Expected Result", "User Role", "Tested By", "Status", "Comments"];
 
         const escapeCSV = (val) => {
             if (val === null || val === undefined) return '';
@@ -1056,6 +1016,7 @@ class App {
             log.steps,
             log.expected,
             log.user || "Fur Parent",
+            log.testerName || "",
             log.status,
             log.comments || ""
         ]);
@@ -1292,6 +1253,7 @@ class App {
             const stepsText = String(log.steps || '').toLowerCase();
             const expectedText = String(log.expected || '').toLowerCase();
             const userText = String(log.user || 'Fur Parent').toLowerCase();
+            const testerText = String(log.testerName || '').toLowerCase();
             const commentsText = String(log.comments || '').toLowerCase();
 
             const matchesSearch = !searchQuery ||
@@ -1300,6 +1262,7 @@ class App {
                 stepsText.includes(searchQuery) ||
                 expectedText.includes(searchQuery) ||
                 userText.includes(searchQuery) ||
+                testerText.includes(searchQuery) ||
                 commentsText.includes(searchQuery);
 
             const matchesModule = selectedMod === 'all' || log.module === selectedMod;
@@ -1397,6 +1360,7 @@ class App {
                         </div>
                     </td>
                     <td data-label="User Role" style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
+                    <td data-label="Tested By" style="font-weight:600; font-size: 0.85rem; color: var(--text-primary);">${this.highlightText(log.testerName || 'N/A', searchQuery)}</td>
                     <td data-label="Status" style="text-align:center; vertical-align:middle;">
                         ${statusCellHTML}
                     </td>
