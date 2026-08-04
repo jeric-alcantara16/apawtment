@@ -89,6 +89,41 @@
     --table-row-hover: rgba(2, 132, 199, 0.03);
 }
 
+.spidey-theme {
+    --bg-primary: #070814;
+    --bg-secondary: #0f1227;
+    --bg-card: rgba(18, 22, 46, 0.85);
+    --bg-input: #171c3d;
+    --text-primary: #ffffff;
+    --text-secondary: #a5b4fc;
+    --text-muted: #818cf8;
+    --border-color: rgba(255, 0, 85, 0.28);
+
+    --primary-color: #ff0055;
+    /* Spidey Crimson Red */
+    --primary-hover: #e6004c;
+    --primary-glow: rgba(255, 0, 85, 0.35);
+
+    --pass-color: #00f0ff;
+    /* Spidey Web Cyan Blue */
+    --pass-hover: #00c8d6;
+    --pass-glow: rgba(0, 240, 255, 0.25);
+
+    --fail-color: #ff2a5f;
+    /* Spider-Sense Alert Red */
+    --fail-hover: #dc143c;
+    --fail-glow: rgba(255, 42, 95, 0.3);
+
+    --warning-color: #ffcc00;
+    /* Spidey Yellow */
+    --warning-glow: rgba(255, 204, 0, 0.25);
+
+    --overlay-color: rgba(5, 7, 18, 0.85);
+    --card-hover-border: rgba(255, 0, 85, 0.5);
+
+    --table-row-hover: rgba(255, 0, 85, 0.06);
+}
+
 /* Base Styles & Resets */
 * {
     box-sizing: border-box;
@@ -1859,4 +1894,345 @@ select.dashboard-status-select {
         text-align: center !important;
         justify-content: center !important;
     }
+}
+
+/* ==========================================================================
+   Spidey Tracker Theme & Interactive Module Radar Map Styles
+   ========================================================================== */
+
+/* Spidey Cyber Background Mesh Overlay */
+.spidey-theme body {
+    background-color: var(--bg-primary);
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 0, 85, 0.18) 0%, transparent 65%),
+        linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 36px 36px, 36px 36px;
+}
+
+.spidey-theme .app-header {
+    border-bottom: 2px solid rgba(255, 0, 85, 0.4);
+    box-shadow: 0 4px 20px rgba(255, 0, 85, 0.2);
+}
+
+.spidey-theme .logo-text h1 span {
+    color: #ff0055;
+    text-shadow: 0 0 10px rgba(255, 0, 85, 0.6);
+}
+
+/* User Role Filter Pills Bar */
+.role-pills-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0.75rem 0;
+    flex-wrap: wrap;
+}
+
+.role-pills-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+}
+
+.role-pill:hover {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.role-pill.active {
+    background: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.role-pill .count-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.1rem 0.4rem;
+    border-radius: 12px;
+    font-size: 0.72rem;
+}
+
+/* Spidey Tactical Module Radar Map Container */
+.spidey-map-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    transition: border-color var(--transition-normal);
+}
+
+.spidey-theme .spidey-map-card {
+    border-color: rgba(255, 0, 85, 0.35);
+    box-shadow: 0 0 25px rgba(255, 0, 85, 0.12);
+}
+
+.spidey-map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.spidey-map-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.spidey-map-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.spidey-map-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.spidey-map-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.spidey-map-viewport {
+    position: relative;
+    width: 100%;
+    min-height: 250px;
+    background: rgba(8, 10, 22, 0.6);
+    border-radius: 12px;
+    border: 1px dashed var(--border-color);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spidey-theme .spidey-map-viewport {
+    background: radial-gradient(circle at center, rgba(15, 18, 41, 0.9) 0%, rgba(5, 7, 16, 0.95) 100%);
+}
+
+/* Radar Sweep Line Animation */
+.radar-sweep-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    margin-top: -90%;
+    margin-left: -90%;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(255, 0, 85, 0.3) 0deg, transparent 60deg, transparent 360deg);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.radar-sweep-active .radar-sweep-line {
+    opacity: 1;
+    animation: radarSweep 2.5s linear infinite;
+}
+
+@keyframes radarSweep {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Web Canvas Background Grid */
+.web-canvas-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Module Nodes Grid Layout */
+.module-nodes-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 1rem;
+    padding: 1.25rem;
+    width: 100%;
+}
+
+.module-node-card {
+    background: rgba(22, 28, 56, 0.85);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.85rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.module-node-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 20px var(--primary-glow);
+}
+
+.module-node-card.selected {
+    border-color: var(--pass-color);
+    background: rgba(0, 240, 255, 0.12);
+    box-shadow: 0 0 16px var(--pass-glow);
+}
+
+.module-node-card.has-bugs {
+    border-color: var(--fail-color);
+    animation: spiderSensePulse 2s infinite alternate;
+}
+
+@keyframes spiderSensePulse {
+    0% { box-shadow: 0 0 6px var(--fail-glow); }
+    100% { box-shadow: 0 0 18px rgba(255, 42, 95, 0.6); }
+}
+
+.node-icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.module-node-card.has-bugs .node-icon-circle {
+    border-color: var(--fail-color);
+    color: var(--fail-color);
+}
+
+.module-node-card.selected .node-icon-circle {
+    border-color: var(--pass-color);
+    color: var(--pass-color);
+}
+
+.node-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.node-stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.node-stat-pass { color: var(--pass-color); }
+.node-stat-fail { color: var(--fail-color); }
+
+.node-radar-ping {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--fail-color);
+}
+
+.node-radar-ping::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid var(--fail-color);
+    animation: pingRipple 1.5s infinite;
+}
+
+@keyframes pingRipple {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* User Role Badges in Table */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.role-badge.role-admin {
+    background: rgba(255, 0, 85, 0.15);
+    color: #ff0055;
+    border: 1px solid rgba(255, 0, 85, 0.3);
+}
+
+.role-badge.role-staff {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.role-badge.role-vet {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.role-badge.role-parent {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
 }

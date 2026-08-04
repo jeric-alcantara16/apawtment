@@ -175,28 +175,49 @@ class App {
 
 
     initTheme() {
-        const savedTheme = localStorage.getItem('novabug_theme') || 'dark';
-        if (savedTheme === 'light') {
-            document.body.classList.remove('dark-theme');
+        const savedTheme = localStorage.getItem('novabug_theme') || 'spidey';
+        this.applyTheme(savedTheme);
+    }
+
+    applyTheme(theme) {
+        document.body.classList.remove('spidey-theme', 'dark-theme', 'light-theme');
+
+        const spideyIcon = this.themeToggleBtn ? this.themeToggleBtn.querySelector('.spidey-icon') : null;
+        const moonIcon = this.themeToggleBtn ? this.themeToggleBtn.querySelector('.moon-icon') : null;
+        const sunIcon = this.themeToggleBtn ? this.themeToggleBtn.querySelector('.sun-icon') : null;
+
+        if (spideyIcon) spideyIcon.classList.add('hidden');
+        if (moonIcon) moonIcon.classList.add('hidden');
+        if (sunIcon) sunIcon.classList.add('hidden');
+
+        if (theme === 'light') {
             document.body.classList.add('light-theme');
-        } else {
+            if (sunIcon) sunIcon.classList.remove('hidden');
+        } else if (theme === 'dark') {
             document.body.classList.add('dark-theme');
-            document.body.classList.remove('light-theme');
+            if (moonIcon) moonIcon.classList.remove('hidden');
+        } else {
+            // Default Spidey Tracker Theme
+            document.body.classList.add('spidey-theme');
+            if (spideyIcon) spideyIcon.classList.remove('hidden');
         }
+        localStorage.setItem('novabug_theme', theme);
     }
 
     toggleTheme() {
-        if (document.body.classList.contains('dark-theme')) {
-            document.body.classList.remove('dark-theme');
-            document.body.classList.add('light-theme');
-            localStorage.setItem('novabug_theme', 'light');
+        const currentTheme = localStorage.getItem('novabug_theme') || 'spidey';
+        let nextTheme = 'dark';
+        if (currentTheme === 'spidey') {
+            nextTheme = 'dark';
+            this.showToast("Theme switched to Dark Mode", "info");
+        } else if (currentTheme === 'dark') {
+            nextTheme = 'light';
             this.showToast("Theme switched to Light Mode", "info");
         } else {
-            document.body.classList.remove('light-theme');
-            document.body.classList.add('dark-theme');
-            localStorage.setItem('novabug_theme', 'dark');
-            this.showToast("Theme switched to Dark Mode", "info");
+            nextTheme = 'spidey';
+            this.showToast("🕷️ Switched to Spidey Tracker Theme!", "success");
         }
+        this.applyTheme(nextTheme);
     }
 
     syncAdminUI() {
@@ -455,6 +476,48 @@ class App {
         this.filterStatus.addEventListener('change', () => this.render());
         this.filterUser.addEventListener('change', () => this.render());
         this.sortOrder.addEventListener('change', () => this.render());
+
+        // User Role Filter Pills Bar
+        const rolePills = document.querySelectorAll('.role-pill');
+        rolePills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const selectedRole = pill.getAttribute('data-role');
+                rolePills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                if (this.filterUser) {
+                    this.filterUser.value = selectedRole;
+                }
+                this.render();
+            });
+        });
+
+        // Spider Radar Scan button
+        const btnSpiderScan = document.getElementById('btn-spider-scan');
+        if (btnSpiderScan) {
+            btnSpiderScan.addEventListener('click', () => {
+                const viewport = document.getElementById('spidey-map-viewport');
+                if (viewport) {
+                    viewport.classList.add('radar-sweep-active');
+                    this.showToast('🕷️ Spider Radar Scan Active: Scanning web nodes...', 'info');
+                    setTimeout(() => {
+                        viewport.classList.remove('radar-sweep-active');
+                        this.showToast('🕷️ Spider Radar Scan Complete: All module health verified.', 'success');
+                    }, 2800);
+                }
+            });
+        }
+
+        // Reset module filter on map
+        const btnResetMapFilter = document.getElementById('btn-reset-map-filter');
+        if (btnResetMapFilter) {
+            btnResetMapFilter.addEventListener('click', () => {
+                if (this.filterModule) {
+                    this.filterModule.value = 'all';
+                }
+                this.render();
+                this.showToast('Module filter reset to All', 'info');
+            });
+        }
 
         // Data actions dropdown toggle
         this.dataActionsBtn.addEventListener('click', (e) => {
@@ -1199,8 +1262,115 @@ class App {
         }
     }
 
+    // --- Render Role Filter Counts ---
+    renderRoleCounts() {
+        const counts = {
+            all: this.logs.length,
+            admin: 0,
+            staff: 0,
+            vet: 0,
+            parent: 0
+        };
+
+        this.logs.forEach(log => {
+            const role = log.user || 'Fur Parent';
+            if (role === 'Admin') counts.admin++;
+            else if (role === 'Sub-Admin (Staff)') counts.staff++;
+            else if (role === 'Sub-Admin (Vet)') counts.vet++;
+            else counts.parent++;
+        });
+
+        const elAll = document.getElementById('role-count-all');
+        const elAdmin = document.getElementById('role-count-admin');
+        const elStaff = document.getElementById('role-count-staff');
+        const elVet = document.getElementById('role-count-vet');
+        const elParent = document.getElementById('role-count-parent');
+
+        if (elAll) elAll.textContent = counts.all;
+        if (elAdmin) elAdmin.textContent = counts.admin;
+        if (elStaff) elStaff.textContent = counts.staff;
+        if (elVet) elVet.textContent = counts.vet;
+        if (elParent) elParent.textContent = counts.parent;
+    }
+
+    // --- Render Spidey Module Radar Map Grid ---
+    renderModuleMap() {
+        const gridContainer = document.getElementById('module-nodes-grid');
+        if (!gridContainer) return;
+
+        const DEFAULT_MODULES = [
+            { name: 'Login Form', icon: '🔑' },
+            { name: 'Dashboard', icon: '📊' },
+            { name: 'Reports', icon: '📑' },
+            { name: 'AI Page', icon: '🤖' },
+            { name: 'QR Scanner', icon: '📷' },
+            { name: 'Adoption Page', icon: '🐾' },
+            { name: 'Pet Profile', icon: '🐕' },
+            { name: 'Medical Records', icon: '🩺' },
+            { name: 'Services', icon: '🛒' }
+        ];
+
+        const loggedModules = new Set(this.logs.map(l => l.module).filter(Boolean));
+        const allModules = [...DEFAULT_MODULES];
+
+        loggedModules.forEach(modName => {
+            if (!allModules.some(m => m.name === modName)) {
+                allModules.push({ name: modName, icon: '🕷️' });
+            }
+        });
+
+        const selectedMod = this.filterModule ? this.filterModule.value : 'all';
+        const selectedRole = this.filterUser ? this.filterUser.value : 'all';
+
+        const roleLogs = selectedRole === 'all' ?
+            this.logs :
+            this.logs.filter(l => (l.user || 'Fur Parent') === selectedRole);
+
+        gridContainer.innerHTML = '';
+
+        allModules.forEach(mod => {
+            const modLogs = roleLogs.filter(l => l.module === mod.name);
+            const total = modLogs.length;
+            const passCount = modLogs.filter(l => l.status === 'PASS').length;
+            const failCount = total - passCount;
+
+            const isSelected = selectedMod === mod.name;
+            const hasBugs = failCount > 0;
+
+            const card = document.createElement('div');
+            card.className = `module-node-card ${isSelected ? 'selected' : ''} ${hasBugs ? 'has-bugs' : ''}`;
+            card.title = `${mod.name}\nTotal Scenarios: ${total}\nPassed: ${passCount}\nFailed: ${failCount}\nClick to filter table by ${mod.name}`;
+
+            card.innerHTML = `
+                ${hasBugs ? '<div class="node-radar-ping"></div>' : ''}
+                <div class="node-icon-circle">${mod.icon}</div>
+                <div class="node-title">${escapeHTML(mod.name)}</div>
+                <div class="node-stats-bar">
+                    <span class="node-stat-pass">✓ ${passCount}</span>
+                    <span class="node-stat-fail">✗ ${failCount}</span>
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                if (this.filterModule.value === mod.name) {
+                    this.filterModule.value = 'all';
+                    this.showToast(`Cleared module filter`, 'info');
+                } else {
+                    this.filterModule.value = mod.name;
+                    this.showToast(`🕷️ Spider Radar locked on node: ${mod.name}`, 'info');
+                }
+                this.render();
+            });
+
+            gridContainer.appendChild(card);
+        });
+    }
+
     // --- Render Screen Grid View ---
     render() {
+        this.renderRoleCounts();
+        this.renderModuleMap();
+
         const total = this.logs.length;
         const passCount = this.logs.filter(log => log.status === 'PASS').length;
         const failCount = total - passCount;
@@ -1336,6 +1506,15 @@ class App {
                     </td>
                 ` : '';
 
+                const roleStr = log.user || 'Fur Parent';
+                let roleBadgeClass = 'role-parent';
+                let roleIcon = '🐾';
+                if (roleStr === 'Admin') { roleBadgeClass = 'role-admin'; roleIcon = '👑'; }
+                else if (roleStr === 'Sub-Admin (Staff)') { roleBadgeClass = 'role-staff'; roleIcon = '🛠️'; }
+                else if (roleStr === 'Sub-Admin (Vet)') { roleBadgeClass = 'role-vet'; roleIcon = '🩺'; }
+
+                const roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}">${roleIcon} ${escapeHTML(roleStr)}</span>`;
+
                 tr.innerHTML = `
                     <td data-label="Test ID" class="font-mono" style="font-weight:700; text-align:center;">${tcDisplayId}</td>
                     <td data-label="Date & Time" style="font-size: 0.8rem; color: var(--text-secondary); text-align:center; white-space: nowrap;">${escapeHTML(formatDateTime(log.datetime))}</td>
@@ -1351,7 +1530,7 @@ class App {
                             ${this.formatMultilineHTML(log.expected || '', searchQuery)}
                         </div>
                     </td>
-                    <td data-label="User Role" style="font-weight:600; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(log.user || 'Fur Parent')}</td>
+                    <td data-label="User Role">${roleBadgeHTML}</td>
                     <td data-label="Tested By" style="font-weight:600; font-size: 0.85rem; color: var(--text-primary);">${this.highlightText(log.testerName || 'N/A', searchQuery)}</td>
                     <td data-label="Status" style="text-align:center; vertical-align:middle;">
                         ${statusCellHTML}
