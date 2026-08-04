@@ -49,9 +49,8 @@
                 </button>
 
                 <!-- Theme Toggle Button -->
-                <button id="theme-toggle-btn" class="icon-btn" aria-label="Toggle Theme" title="Toggle Theme (Spidey / Dark / Light)">
-                    <span class="spidey-icon" style="font-size: 1.1rem; line-height: 1;">🕷️</span>
-                    <svg class="sun-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <button id="theme-toggle-btn" class="icon-btn" aria-label="Toggle Theme">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
                         <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -63,7 +62,7 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
-                    <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
@@ -79,6 +78,10 @@
                         <line x1="12" y1="17" x2="12.01" y2="17"></line>
                     </svg>
                 </button>
+
+
+
+
 
                 <!-- Tester Add Test Case Button -->
                 <button id="btn-tester-add" class="btn btn-primary" title="Add a single test case log">
@@ -165,64 +168,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Spidey Tactical Module Radar Map -->
-        <section class="spidey-map-card" id="spidey-map-section">
-            <div class="spidey-map-header">
-                <div class="spidey-map-title-group">
-                    <div class="spidey-map-title">
-                        <span>🕸️</span> Interactive Module Radar Map
-                    </div>
-                    <span class="spidey-map-subtitle">Click any module node to filter test logs & view spider-sense health pulse</span>
-                </div>
-                <div class="spidey-map-controls">
-                    <button id="btn-spider-scan" class="btn btn-secondary btn-sm" title="Run radar sweep across module nodes" style="padding: 0.4rem 0.8rem; font-size: 0.78rem;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="12" x2="18" y2="6"></line>
-                        </svg>
-                        Spider Scan
-                    </button>
-                    <button id="btn-reset-map-filter" class="btn btn-secondary btn-sm" title="Show all modules" style="padding: 0.4rem 0.8rem; font-size: 0.78rem;">
-                        Clear Filter
-                    </button>
-                </div>
-            </div>
-
-            <div class="spidey-map-viewport" id="spidey-map-viewport">
-                <div class="radar-sweep-line" id="radar-sweep-line"></div>
-                <svg class="web-canvas-svg" id="web-canvas-svg"></svg>
-                <div class="module-nodes-grid" id="module-nodes-grid">
-                    <!-- Dynamic Module Nodes Render Here -->
-                </div>
-            </div>
-        </section>
-
-        <!-- User Role Filter Pills -->
-        <div class="role-pills-bar" id="role-pills-bar">
-            <span class="role-pills-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                User Role Filter:
-            </span>
-            <button class="role-pill active" data-role="all">
-                🕷️ All Roles <span class="count-badge" id="role-count-all">0</span>
-            </button>
-            <button class="role-pill" data-role="Admin">
-                👑 Admin <span class="count-badge" id="role-count-admin">0</span>
-            </button>
-            <button class="role-pill" data-role="Sub-Admin (Staff)">
-                🛠️ Sub-Admin (Staff) <span class="count-badge" id="role-count-staff">0</span>
-            </button>
-            <button class="role-pill" data-role="Sub-Admin (Vet)">
-                🩺 Sub-Admin (Vet) <span class="count-badge" id="role-count-vet">0</span>
-            </button>
-            <button class="role-pill" data-role="Fur Parent">
-                🐾 Fur Parent <span class="count-badge" id="role-count-parent">0</span>
-            </button>
-        </div>
 
         <!-- Filters & Search Toolbar -->
         <section class="toolbar">
